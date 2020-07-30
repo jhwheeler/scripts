@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# Format `watson log` output for daily standup
+
+grep -o "\[.*\]" |      # find time periods tracked (enclosed in brackets)
+tr -d '[]' |            # remove brackets
+sed 's/_/ /g' |         # replace _ with a space
+tr ',' '\n' |           # split up multi-task time periods into own lines
+perl -pe 's/^\s*//g' |  # strip extra whitespace at the beginning of lines
+awk '!seen[$0]++'       # remove duplicates
+
+## Expected format is each task on its own line, stripped of punctuation:
+# new feature
+# fix bug
+# clean up code
