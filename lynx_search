@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+function join_by {
+  local IFS="+";
+  echo "$*";
+}
+
+query=$(join_by $@)
+
+lynx https://duckduckgo.com?q=$query
