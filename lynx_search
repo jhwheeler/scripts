@@ -5,6 +5,8 @@ function join_by {
   echo "$*";
 }
 
+# join args with `+`
 query=$(join_by $@)
 
+# search duckduckgo for args
 lynx https://duckduckgo.com?q=$query
