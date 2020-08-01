@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# xargs -I -L 2 echo
+read dates
+read _
+read details
+
+echo $details
+
+hours=$(grep -oe '\d\+h' <<< "$details")
+
+echo $hours
