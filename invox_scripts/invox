@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+
+# set -u
+# set -e
+# set -o pipefail
+
+usage="
+invox
+Simple invoice formatter
+
+USAGE: invox [OPTIONS]
+
+Requires time period and hours worked to be passed in a pipeline (see example below)
+
+OPTIONS:
+  -i <string>              Sets invoice_id, the identifer for this invoice
+  -d <string>              Sets the date of the invoice
+  -h                       Shows this message
+
+EXAMPLE:
+
+watson report -G | invox -i 97 -d 1 August, 2020
+
+The invoice will be saved as invoice_97.md in the current directory.
+
+SETUP:
+  1. Config file located in ~/.invoxrc or ~/.config/invox/.invoxrc
+    - includes all the variables to be replaced in the template file
+  2. Template located in ~/invox_template.md or ~/.config/invox/invox_template.md
+
+You can have whatever variables in the config and template, as long as they are the same. Variables are wrapped in double brackets in the template file, e.g. {{recipient_name}}.
+
+"
+
+# required args:
+# -i invoice_id
+# -d date
+
+while getopts "i:d:" opt; do
+  case "$opt" in
+    i )
+      invoice_id="$OPTARG"
+      ;;
+    d )
+      date="$OPTARG"
+      ;;
+    h )
+      echo "$usage"
+      ;;
+    \? )
+      echo -e "Invalid option: $OPTARG\n${usage}" 1>&2
+      ;;
+    : )
+      echo "Invalid option: $OPTARG requires a string argument" 1>&2
+      ;;
+  esac
+done
+shift $((OPTIND -1))
+
+read time_period
+read _
+read details
+
+hours=$(perl -ne 'print "$&\n" if /\d+(?=h)/' <<< "$details")
+minutes=$(perl -ne 'print "$&\n" if /\d+(?=m)/' <<< "$details")
+
+# Round up the hour count at a half hour
+if [[ $minutes -gt 30 ]]
+then
+  ((hours=hours+1))
+fi
+
+# get values for report from config file, .invoxrc
+declare -A report
+while IFS='=' read -d $'\n' -r key value; do
+  # Skip empty lines & lines starting with sharp (comments)
+  [[ "$key" =~ ^([[:space:]]*|[[:space:]]*#.*)$ ]] && continue
+
+  report[$key]="$value"
+done < .invoxrc
+
+let "cost = hours * report[hourly_rate]"
+
+# add date, invoice id, time period, hours, and cost to report
+report[time_period]="$time_period"
+report[hours]="$hours"
+report[cost]="$cost"
+report[date]="$date"
+report[invoice_id]="$invoice_id"
+
+# get all variable names in template file, template.md
+vars=$(grep -oE '\{\{([A-Za-z0-9_]+)\}\}' ./template.md |
+  gsed -rn 's/.*\{\{([A-Za-z0-9_]+)\}\}.*/\1/p' |
+  sort |
+  uniq)
+
+cp template.md invoice_${invoice_id}.md
+
+for var in $vars; do
+  if [ "${report[$var]}" ]; then
+    value="$(echo "${report[$var]}")"
+    gsed -i "s/{{$var}}/${report[$var]}/" invoice_${invoice_id}.md
+    # gsed -i "s/{{$var}}/${report[$var]}/" invoice.md
+    # gsed -i "s/invoice_id/${report[$var]}/" invoice.md
+  fi
+done
+
+cat invoice_${invoice_id}.md
