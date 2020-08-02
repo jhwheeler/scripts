@@ -1,0 +1,13 @@
+# Recipient Info
+recipient_name=David Mühle
+recipient_company=Playpilot AB
+recipient_id=Org nr. 556946-8530
+recipient_address_1=Valhallavägen 66, 114 27
+recipient_address_2=Stockholm, Sweden
+
+# Work Info
+purpose=Software Development
+payment_method=Bank Transfer
+service=Software Development
+hourly_rate=50
+currency=USD
