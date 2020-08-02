@@ -11,3 +11,10 @@ payment_method=Bank Transfer
 service=Software Development
 hourly_rate=50
 currency=USD
+
+# Sender Info
+closing_message=Thank you for your trust and your business. Please be in contact with any questions or requests as they arise.
+sender_name=Jackson Holiday Wheeler
+sender_city=Sofia, Bulgaria
+sender_number=+359 87 86 35 296
+sender_ssn=SSN: 696-03-9593

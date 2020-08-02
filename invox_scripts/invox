@@ -21,12 +21,12 @@ EXAMPLE:
 
 watson report -G | invox -i 97 -d 1 August, 2020
 
-The invoice will be saved as invoice_97.md in the current directory.
+The invoice will be saved as invoice_97.html in the current directory.
 
 SETUP:
   1. Config file located in ~/.invoxrc or ~/.config/invox/.invoxrc
     - includes all the variables to be replaced in the template file
-  2. Template located in ~/invox_template.md or ~/.config/invox/invox_template.md
+  2. Template located in ~/invox_template.html or ~/.config/invox/invox_template.html
 
 You can have whatever variables in the config and template, as long as they are the same. Variables are wrapped in double brackets in the template file, e.g. {{recipient_name}}.
 
@@ -88,19 +88,19 @@ report[cost]="$cost"
 report[date]="$date"
 report[invoice_id]="$invoice_id"
 
-# get all variable names in template file, template.md
-vars=$(grep -oE '\{\{([A-Za-z0-9_]+)\}\}' ./template.md |
+# get all variable names in template file, template.html
+vars=$(grep -oE '\{\{([A-Za-z0-9_]+)\}\}' ./template.html |
   gsed -rn 's/.*\{\{([A-Za-z0-9_]+)\}\}.*/\1/p' |
   sort |
   uniq)
 
-cp template.md invoice_${invoice_id}.md
+cp template.html invoice_${invoice_id}.html
 
 for var in $vars; do
   if [ "${report[$var]}" ]; then
     value="$(echo "${report[$var]}")"
-    gsed -i "s/{{$var}}/${report[$var]}/" invoice_${invoice_id}.md
+    gsed -i "s/{{$var}}/${report[$var]}/" invoice_${invoice_id}.html
   fi
 done
 
-cat invoice_${invoice_id}.md
+wkhtmltopdf invoice_${invoice_id}.html invoice_${invoice_id}.pdf && open invoice_${invoice_id}.pdf

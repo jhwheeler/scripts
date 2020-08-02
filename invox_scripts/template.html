@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta
+      http-equiv="Content-type"
+      content="text/html; charset=utf-8" />
+    <meta charset="UTF-8" />
+
+    <title>Invoice {{invoice_id}}</title>
+
+    <style>
+      body {
+        font-family: Helvetica;
+      }
+
+      h2 {
+        margin: 0.5rem 0;
+        font-size: 1.2rem;
+      }
+
+      div {
+        margin: 2rem 0;
+      }
+
+      div p {
+        margin: 0.2rem 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Invoice {{invoice_id}}</h1>
+
+    <div id="date-info">
+      <h2>Date: {{date}}</h2>
+    </div>
+
+    <div id="recipient-info">
+      <h2>Attention</h2>
+      <p>{{recipient_name}}</p>
+      <p>{{recipient_company}}</p>
+      <p>{{recipient_address_1}}</p>
+      <p>{{recipient_address_2}}</p>
+    </div>
+
+    <div id="invoice-info">
+      <h2>Purpose</h2>
+      <p>{{purpose}}</p>
+
+      <h2>Invoice Number</h2>
+      <p>{{invoice_id}}</p>
+
+      <h2>Payment Method</h2>
+      <p>{{payment_method}}</p>
+
+      <h2>Time Period</h2>
+      <p>{{time_period}}</p>
+    </div>
+
+    <table id="cycle-info">
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Hours</th>
+          <th>Cycle Cost</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{service}}</td>
+          <td>{{hours}}</td>
+          <td>{{cost}}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div id="closing-message">
+      <p>{{closing_message}}</p>
+    </div>
+
+    <div id="sender-info">
+      <p>{{sender_name}}</p>
+      <p>{{sender_city}}</p>
+      <p>{{sender_number}}</p>
+      <p>{{sender_ssn}}</p>
+    </div>
+  </body>
+</html>
