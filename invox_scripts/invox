@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-# set -u
-# set -e
-# set -o pipefail
+set -u
+set -e
+set -o pipefail
 
 usage="
 invox
@@ -100,8 +100,6 @@ for var in $vars; do
   if [ "${report[$var]}" ]; then
     value="$(echo "${report[$var]}")"
     gsed -i "s/{{$var}}/${report[$var]}/" invoice_${invoice_id}.md
-    # gsed -i "s/{{$var}}/${report[$var]}/" invoice.md
-    # gsed -i "s/invoice_id/${report[$var]}/" invoice.md
   fi
 done
 
