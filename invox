@@ -98,6 +98,7 @@ if test -t 0; then
   exit 1
 fi
 
+# read time period and hours worked from stdin (piped from `watson report -G`)
 read time_period
 read _
 read details
@@ -147,4 +148,4 @@ done
 echo "Creating invoice, saving to $filename.pdf"
 
 # generate PDF based on html file; replace wkhtmltopdf err, if any, w/ custom err message
-wkhtmltopdf "$filename.html" "$filename.pdf" > /dev/null 2>&1 && open "$filename.pdf" || echo "Failed to create invoice PDF. Check filename for formatting errors."
+wkhtmltopdf -T 0 -B 0 -L 0 -R 0 "$filename.html" "$filename.pdf" > /dev/null 2>&1 && open "$filename.pdf" || echo "Failed to create invoice PDF. Check filename for formatting errors."

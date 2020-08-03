@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="sv">
+<html>
   <head>
     <meta
       http-equiv="Content-type"
@@ -9,8 +9,21 @@
     <title>Invoice {{invoice_id}}</title>
 
     <style>
+      html {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #e2e1e2;
+      }
+
       body {
         font-family: Helvetica;
+        color: #0d0b0c;
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
       }
 
       h2 {
@@ -29,7 +42,7 @@
   </head>
 
   <body>
-    <h1>Invoice {{invoice_id}}</h1>
+    <h1>Invoice</h1>
 
     <div id="date-info">
       <h2>Date: {{date}}</h2>
