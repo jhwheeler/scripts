@@ -12,21 +12,29 @@ USAGE: invox [OPTIONS]
 
 Requires time period and hours worked to be passed in a pipeline (see example below)
 
-OPTIONS:
-  -i <string>              Sets invoice_id, the identifer for this invoice
-  -d <string>              Sets the date of the invoice
-  -h                       Shows this message
+OPTIONS
+  -i <string> (required)   invoice_id, the identifer for this invoice
+  -d <string> (required)   date of the invoice
+  -c <string>              custom config file
+  -t <string>              custom html template
+  -h                       help (this message)
 
-EXAMPLE:
+EXAMPLES
 
-watson report -G | invox -i 97 -d 1 August, 2020
+With defaults:
+watson report -G | invox -i 97 -d \"1 August, 2020\"
+
+With custom config, template, and filename:
+watson report -G | ./invox -i MC81 -d \"1 August 2020\" -t ./template.html -c ./.invoxrc -f \"Invoice MC97 John Doe\"
 
 The invoice will be saved as invoice_97.html in the current directory.
 
-SETUP:
+SETUP
   1. Config file located in ~/.config/invox/.invoxrc
     - includes all the variables to be replaced in the template file
+    - can be overriden with the -c flag (see above)
   2. Template located in ~/.config/invox/template.html
+    - can be overriden with the -t flag (see above)
 
 You can have whatever variables in the config and template, as long as they are the same. Variables are wrapped in double brackets in the template file, e.g. {{recipient_name}}.
 "
