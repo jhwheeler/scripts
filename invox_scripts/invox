@@ -46,7 +46,7 @@ You can have whatever variables in the config and template, as long as they are 
 config=~/.config/invox/.invoxrc
 template=~/.config/invox/template.html
 
-while getopts "i:d:t:c:f:" opt; do
+while getopts "i:d:t:c:f:h" opt; do
   case "$opt" in
     i )
       invoice_id="$OPTARG"
