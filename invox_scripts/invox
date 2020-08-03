@@ -118,7 +118,7 @@ while IFS='=' read -d $'\n' -r key value; do
   [[ "$key" =~ ^([[:space:]]*|[[:space:]]*#.*)$ ]] && continue
 
   report[$key]="$value"
-done < $config
+done < "$config"
 
 let "cost = hours * report[hourly_rate]"
 
@@ -130,19 +130,21 @@ report[date]="$date"
 report[invoice_id]="$invoice_id"
 
 # get all variable names in template file
-vars=$(grep -oE '\{\{([A-Za-z0-9_]+)\}\}' $template |
+vars=$(grep -oE '\{\{([A-Za-z0-9_]+)\}\}' "$template" |
   gsed -rn 's/.*\{\{([A-Za-z0-9_]+)\}\}.*/\1/p' |
   sort |
   uniq)
 
-cp $template $filename.html
+cp "$template" "$filename.html"
 
 for var in $vars; do
   if [ "${report[$var]}" ]; then
     value="$(echo "${report[$var]}")"
-    gsed -i "s/{{$var}}/${report[$var]}/" $filename.html
+    gsed -i "s/{{$var}}/${report[$var]}/" "$filename.html"
   fi
 done
 
 echo "Creating invoice, saving to $filename.pdf"
-wkhtmltopdf $filename.html $filename.pdf && open $filename.pdf
+
+# generate PDF based on html file; replace wkhtmltopdf err, if any, w/ custom err message
+wkhtmltopdf "$filename.html" "$filename.pdf" > /dev/null 2>&1 && open "$filename.pdf" || echo "Failed to create invoice PDF. Check filename for formatting errors."
