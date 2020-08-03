@@ -4,7 +4,7 @@ set -u
 set -e
 set -o pipefail
 
-usage() { 
+usage() {
   echo "
   invox
   Simple invoice formatter
