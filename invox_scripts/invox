@@ -75,6 +75,14 @@ while getopts "i:d:t:c:f:h" opt; do
 done
 shift $((OPTIND -1))
 
+if [[ ! ${date+x} ]]
+then echo "-d required: set the date of the invoice" && echo "$usage" && exit 1
+fi
+
+if [[ ! ${invoice_id+x} ]]
+then echo "-i required: set the invoice id" && echo "$usage" && exit 1
+fi
+
 # default filename if no -f flag is set
 if [[ ! ${filename+x} ]]
 then filename=Invoice_${invoice_id}
