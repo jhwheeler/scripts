@@ -143,7 +143,7 @@ cp "$template" "$filename.html"
 
 for var in $vars; do
   if [ "${report[$var]}" ]; then
-    value="$(echo "${report[$var]}")"
+    value="${report[$var]}"
     gsed -i "s/{{$var}}/${report[$var]}/" "$filename.html"
   fi
 done
