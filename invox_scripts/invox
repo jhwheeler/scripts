@@ -65,6 +65,7 @@ while getopts "i:d:t:c:f:h" opt; do
       ;;
     h )
       echo "$usage"
+      exit 0
       ;;
     \? )
       echo -e "Invalid option: $OPTARG\n${usage}" 1>&2
