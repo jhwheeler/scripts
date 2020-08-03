@@ -4,40 +4,42 @@ set -u
 set -e
 set -o pipefail
 
-usage="
-invox
-Simple invoice formatter
+usage() { 
+  echo "
+  invox
+  Simple invoice formatter
 
-USAGE: invox [OPTIONS]
+  USAGE: invox [OPTIONS]
 
-Requires time period and hours worked to be passed in a pipeline (see example below)
+  Requires time period and hours worked to be passed in a pipeline (see example below)
 
-OPTIONS
+  OPTIONS
   -i <string> (required)   invoice_id, the identifer for this invoice
   -d <string> (required)   date of the invoice
   -c <string>              custom config file
   -t <string>              custom html template
   -h                       help (this message)
 
-EXAMPLES
+  EXAMPLES
 
-With defaults:
-watson report -G | invox -i 97 -d \"1 August, 2020\"
+  With defaults:
+  watson report -G | invox -i 97 -d \"1 August, 2020\"
 
-With custom config, template, and filename:
-watson report -G | ./invox -i MC81 -d \"1 August 2020\" -t ./template.html -c ./.invoxrc -f \"Invoice MC97 John Doe\"
+  With custom config, template, and filename:
+  watson report -G | ./invox -i MC81 -d \"1 August 2020\" -t ./template.html -c ./.invoxrc -f \"Invoice MC97 John Doe\"
 
-The invoice will be saved as invoice_97.html in the current directory.
+  The invoice will be saved as invoice_97.html in the current directory.
 
-SETUP
+  SETUP
   1. Config file located in ~/.config/invox/.invoxrc
-    - includes all the variables to be replaced in the template file
-    - can be overriden with the -c flag (see above)
+  - includes all the variables to be replaced in the template file
+  - can be overriden with the -c flag (see above)
   2. Template located in ~/.config/invox/template.html
-    - can be overriden with the -t flag (see above)
+  - can be overriden with the -t flag (see above)
 
-You can have whatever variables in the config and template, as long as they are the same. Variables are wrapped in double brackets in the template file, e.g. {{recipient_name}}.
-"
+  You can have whatever variables in the config and template, as long as they are the same. Variables are wrapped in double brackets in the template file, e.g. {{recipient_name}}.
+  "
+}
 
 # required args:
 # -i invoice_id
@@ -64,11 +66,11 @@ while getopts "i:d:t:c:f:h" opt; do
       filename="$OPTARG"
       ;;
     h )
-      echo "$usage"
+      usage
       exit 0
       ;;
     \? )
-      echo "$usage"
+      usage
       exit 1
       ;;
   esac
@@ -76,11 +78,11 @@ done
 shift $((OPTIND -1))
 
 if [[ ! ${date+x} ]]
-then echo "-d required: set the date of the invoice" && echo "$usage" && exit 1
+then echo "-d required: set the date of the invoice" && usage && exit 1
 fi
 
 if [[ ! ${invoice_id+x} ]]
-then echo "-i required: set the invoice id" && echo "$usage" && exit 1
+then echo "-i required: set the invoice id" && usage && exit 1
 fi
 
 # default filename if no -f flag is set
@@ -89,9 +91,9 @@ then filename=Invoice_${invoice_id}
 fi
 
 if test -t 0; then
-    echo "Time sheet required in pipeline. Currently only supports watson."
-    echo "$usage"
-    exit 1
+  echo "Time sheet required in pipeline. Currently only supports watson."
+  usage
+  exit 1
 fi
 
 read time_period
