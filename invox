@@ -124,7 +124,7 @@ while IFS='=' read -d $'\n' -r key value; do
   report[$key]="$value"
 done < "$config"
 
-let "cost = hours * report[hourly_rate]"
+((cost = hours * report[hourly_rate]))
 
 # add date, invoice id, time period, hours, and cost to report
 report[time_period]="$time_period"
