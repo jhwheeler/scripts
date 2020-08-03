@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Invox: simple invoice formatter
+# See usage message for more details
+
 set -u
 set -e
 set -o pipefail
