@@ -68,10 +68,8 @@ while getopts "i:d:t:c:f:h" opt; do
       exit 0
       ;;
     \? )
-      echo -e "Invalid option: $OPTARG\n${usage}" 1>&2
-      ;;
-    : )
-      echo "Invalid option: $OPTARG requires a string argument" 1>&2
+      echo "$usage"
+      exit 1
       ;;
   esac
 done
