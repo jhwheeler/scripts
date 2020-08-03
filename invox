@@ -102,9 +102,9 @@ if test -t 0; then
 fi
 
 # read time period and hours worked from stdin (piped from `watson report -G`)
-read time_period
-read _
-read details
+read -r time_period
+read -r _
+read -r details
 
 hours=$(perl -ne 'print "$&\n" if /\d+(?=h)/' <<< "$details")
 minutes=$(perl -ne 'print "$&\n" if /\d+(?=m)/' <<< "$details")
