@@ -23,12 +23,14 @@ usage() {
   EXAMPLES
 
   With defaults:
-  watson report -G | invox -i 97 -d \"1 August, 2020\"
+  $ watson report -G | invox -i 97 -d \"1 August, 2020\"
+
+  The invoice will be saved as invoice_97.pdf in the current directory.
 
   With custom config, template, and filename:
-  watson report -G | ./invox -i MC81 -d \"1 August 2020\" -t ./template.html -c ./.invoxrc -f \"Invoice MC97 John Doe\"
+  $ watson report -G | ./invox -i MC81 -d \"1 August 2020\" -t ./template.html -c ./.invoxrc -f \"Invoice\"
 
-  The invoice will be saved as invoice_97.html in the current directory.
+  The invoice will be saved as Invoice.pdf in the current directory.
 
   SETUP
   1. Config file located in ~/.config/invox/.invoxrc
