@@ -24,25 +24,36 @@ watson report -G | invox -i 97 -d 1 August, 2020
 The invoice will be saved as invoice_97.html in the current directory.
 
 SETUP:
-  1. Config file located in ~/.invoxrc or ~/.config/invox/.invoxrc
+  1. Config file located in ~/.config/invox/.invoxrc
     - includes all the variables to be replaced in the template file
-  2. Template located in ~/invox_template.html or ~/.config/invox/invox_template.html
+  2. Template located in ~/.config/invox/template.html
 
 You can have whatever variables in the config and template, as long as they are the same. Variables are wrapped in double brackets in the template file, e.g. {{recipient_name}}.
-
 "
 
 # required args:
 # -i invoice_id
 # -d date
 
-while getopts "i:d:" opt; do
+config=~/.config/invox/.invoxrc
+template=~/.config/invox/template.html
+
+while getopts "i:d:t:c:f:" opt; do
   case "$opt" in
     i )
       invoice_id="$OPTARG"
       ;;
     d )
       date="$OPTARG"
+      ;;
+    c )
+      config="$OPTARG"
+      ;;
+    t )
+      template="$OPTARG"
+      ;;
+    f )
+      filename="$OPTARG"
       ;;
     h )
       echo "$usage"
@@ -57,6 +68,11 @@ while getopts "i:d:" opt; do
 done
 shift $((OPTIND -1))
 
+# default filename if no -f flag is set
+if [[ ! ${filename+x} ]]
+then filename=Invoice_${invoice_id}
+fi
+
 read time_period
 read _
 read details
@@ -70,14 +86,14 @@ then
   ((hours=hours+1))
 fi
 
-# get values for report from config file, .invoxrc
+# get values for report from config file
 declare -A report
 while IFS='=' read -d $'\n' -r key value; do
   # Skip empty lines & lines starting with sharp (comments)
   [[ "$key" =~ ^([[:space:]]*|[[:space:]]*#.*)$ ]] && continue
 
   report[$key]="$value"
-done < .invoxrc
+done < $config
 
 let "cost = hours * report[hourly_rate]"
 
@@ -88,19 +104,20 @@ report[cost]="$cost"
 report[date]="$date"
 report[invoice_id]="$invoice_id"
 
-# get all variable names in template file, template.html
-vars=$(grep -oE '\{\{([A-Za-z0-9_]+)\}\}' ./template.html |
+# get all variable names in template file
+vars=$(grep -oE '\{\{([A-Za-z0-9_]+)\}\}' $template |
   gsed -rn 's/.*\{\{([A-Za-z0-9_]+)\}\}.*/\1/p' |
   sort |
   uniq)
 
-cp template.html invoice_${invoice_id}.html
+cp $template $filename.html
 
 for var in $vars; do
   if [ "${report[$var]}" ]; then
     value="$(echo "${report[$var]}")"
-    gsed -i "s/{{$var}}/${report[$var]}/" invoice_${invoice_id}.html
+    gsed -i "s/{{$var}}/${report[$var]}/" $filename.html
   fi
 done
 
-wkhtmltopdf invoice_${invoice_id}.html invoice_${invoice_id}.pdf && open invoice_${invoice_id}.pdf
+echo "Creating invoice, saving to $filename.pdf"
+wkhtmltopdf $filename.html $filename.pdf && open $filename.pdf
