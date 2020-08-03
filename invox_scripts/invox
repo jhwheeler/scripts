@@ -88,6 +88,12 @@ if [[ ! ${filename+x} ]]
 then filename=Invoice_${invoice_id}
 fi
 
+if test -t 0; then
+    echo "Time sheet required in pipeline. Currently only supports watson."
+    echo "$usage"
+    exit 1
+fi
+
 read time_period
 read _
 read details
