@@ -88,12 +88,6 @@ fi
 if [[ ! ${invoice_id+x} ]]
 then echo "-i required: set the invoice id" && usage && exit 1
 fi
-
-# default filename if no -f flag is set
-if [[ ! ${filename+x} ]]
-then filename=Invoice_${invoice_id}
-fi
-
 if test -t 0; then
   echo "Time sheet required in pipeline. Currently only supports watson."
   usage
@@ -139,6 +133,11 @@ vars=$(grep -oE '\{\{([A-Za-z0-9_]+)\}\}' "$template" |
   sort |
   uniq)
 
+# default filename if no -f flag is set
+if [[ ! ${filename+x} ]]
+then filename="Invoice ${invoice_id} - ${date} - ${report[sender_name]}"
+fi
+
 cp "$template" "$filename.html"
 
 for var in $vars; do
@@ -161,3 +160,5 @@ wkhtmltopdf \
   "$filename.html" "$filename.pdf" && \
   open "$filename.pdf" || \
   echo "Failed to create invoice PDF. Check filename for formatting errors."
+
+rm "$filename.html"
