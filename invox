@@ -148,7 +148,7 @@ for var in $vars; do
   fi
 done
 
-echo "Creating invoice, saving to $filename.pdf"
+echo "Creating invoice, saving to $(pwd)/$filename.pdf"
 
 # generate PDF based on html file; replace wkhtmltopdf err, if any, w/ custom err message
-wkhtmltopdf -T 0 -B 0 -L 0 -R 0 "$filename.html" "$filename.pdf" > /dev/null 2>&1 && open "$filename.pdf" || echo "Failed to create invoice PDF. Check filename for formatting errors."
+wkhtmltopdf --quiet -T 0 -B 0 -L 0 -R 0 "$filename.html" "$filename.pdf" && open "$filename.pdf" || echo "Failed to create invoice PDF. Check filename for formatting errors."
