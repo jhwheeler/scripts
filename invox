@@ -3,8 +3,7 @@
 # Invox: simple invoice formatter
 # See usage message for more details
 
-set -u
-set -e
+set -eu
 set -o pipefail
 
 usage() {
@@ -31,7 +30,7 @@ usage() {
   The invoice will be saved as invoice_97.pdf in the current directory.
 
   With custom config, template, and filename:
-  $ watson report -G | ./invox -i MC81 -d \"1 August 2020\" -t ./template.html -c ./.invoxrc -f \"Invoice\"
+  $ watson report -G | ./invox -i MC81 -d \"1 August 2020\" -t ./invox_template.html -c ./.invoxrc -f \"Invoice\"
 
   The invoice will be saved as Invoice.pdf in the current directory.
 
@@ -39,7 +38,7 @@ usage() {
   1. Config file located in ~/.config/invox/.invoxrc
   - includes all the variables to be replaced in the template file
   - can be overriden with the -c flag (see above)
-  2. Template located in ~/.config/invox/template.html
+  2. Template located in ~/.config/invox/invox_template.html
   - can be overriden with the -t flag (see above)
 
   You can have whatever variables in the config and template, as long as they are the same. Variables are wrapped in double brackets in the template file, e.g. {{recipient_name}}.
@@ -51,7 +50,7 @@ usage() {
 # -d date
 
 config=~/.config/invox/.invoxrc
-template=~/.config/invox/template.html
+template=~/.config/invox/invox_template.html
 
 while getopts "i:d:t:c:f:h" opt; do
   case "$opt" in
