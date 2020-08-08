@@ -1,4 +1,6 @@
-# Scripts to make life easier
+# Scripts
+
+Automated tasks in Bash
 
 ## standup
 
