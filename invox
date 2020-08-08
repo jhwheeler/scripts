@@ -124,7 +124,8 @@ while IFS='=' read -d $'\n' -r key value; do
   report[$key]="$value"
 done < "$config"
 
-((cost = hours * report[hourly_rate]))
+# calculate & cost to nearest integer
+cost=$(bc <<< "((${hours} * ${report[hourly_rate]}) + 0.5)/1")
 
 # add date, invoice id, time period, hours, and cost to report
 report[time_period]="$time_period"
