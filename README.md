@@ -1,3 +1,1 @@
-# Utils
-
-Small scripts to make life easier
+# Scripts to make life easier
