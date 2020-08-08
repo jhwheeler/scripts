@@ -150,5 +150,14 @@ done
 
 echo "Creating invoice, saving to $(pwd)/$filename.pdf"
 
-# generate PDF based on html file; replace wkhtmltopdf err, if any, w/ custom err message
-wkhtmltopdf --quiet -T 0 -B 0 -L 0 -R 0 "$filename.html" "$filename.pdf" && open "$filename.pdf" || echo "Failed to create invoice PDF. Check filename for formatting errors."
+# generate PDF based on html file
+wkhtmltopdf \
+  --page-size "Letter" \
+  --margin-top "0mm" \
+  --margin-right "0mm"  \
+  --margin-bottom "0mm" \
+  --margin-left "0mm" \
+  --quiet \
+  "$filename.html" "$filename.pdf" && \
+  open "$filename.pdf" || \
+  echo "Failed to create invoice PDF. Check filename for formatting errors."
