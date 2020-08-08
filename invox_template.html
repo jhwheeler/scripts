@@ -9,93 +9,150 @@
     <title>Invoice {{invoice_id}}</title>
 
     <style>
+      * {
+        box-sizing: border-box;
+      }
+
       html {
         height: 100%;
-        width: 100%;
+        width: 100vw;
         margin: 0;
         padding: 0;
-        background-color: #e2e1e2;
+        background-color: #e3e2e9;
       }
 
       body {
-        font-family: Helvetica;
+        font-family: Raleway, Helvetica, sans-serif;
         color: #0d0b0c;
         height: 100%;
         width: 100%;
+        line-height: 1.5;
         margin: 0;
-        padding: 0;
       }
 
-      h2 {
-        margin: 0.5rem 0;
-        font-size: 1.2rem;
+      #main {
+        padding: 7rem 10rem;
       }
 
-      div {
-        margin: 2rem 0;
+      header {
+        background-color: #3c2f50;
+        color: #e3e2e9;
       }
 
-      div p {
-        margin: 0.2rem 0;
+      h1 {
+        margin-bottom: 2rem;
+      }
+
+      #intro {
+        margin-bottom: 3rem;
+      }
+
+      #intro h4 {
+        margin: 0;
+        font-weight: lighter;
+      }
+
+      #intro .info {
+        display: inline-block;
+        width: 20rem;
+      }
+
+      #intro #recipient-info {
+        float: right;
+        text-align: right;
+      }
+
+      #intro #metadata {
+        margin-bottom: 2rem;
+      }
+
+      #intro #metadata span {
+        font-weight: bold;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 4rem;
+      }
+
+      th {
+        text-align: left;
+        width: 33%;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #ccc;
+      }
+
+      td {
+        padding-top: 1.5rem;
+        font-weight: bold;
+      }
+
+      th:nth-child(n+2),
+      td:nth-child(n+2) {
+        text-align: right;
+      }
+
+      footer {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        padding: 2rem;
+        text-align: center;
+        color: #e3e2e9;
+        background-color: #3c2f50;
       }
     </style>
+
+    <link href='http://fonts.googleapis.com/css?family=Raleway:wght@300;400;700&display=swap' rel='stylesheet' type='text/css'>
   </head>
 
   <body>
-    <h1>Invoice</h1>
+    <div id="main">
+      <header>
+        <h1>INVOICE</h1>
+      </header>
 
-    <div id="date-info">
-      <h2>Date: {{date}}</h2>
+      <h2>{{recipient_company}}</h4>
+
+      <div id="intro">
+        <div class="info" id="general-info">
+          <h4>Date: <span>{{date}}</span></h4>
+          <h4>Invoice No: <span>{{invoice_id}}</span></h4>
+          <h4>Period: <span>{{time_period}}</span></h4>
+        </div>
+
+        <div class="info" id="recipient-info">
+          <h4>{{recipient_name}}</h4>
+          <h4>{{recipient_address_1}}</h4>
+          <h4>{{recipient_address_2}}</h4>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>SERVICE</th>
+            <th>HOURS</th>
+            <th>CYCLE COST</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{service}}</td>
+            <td>{{hours}}</td>
+            <td id="cost">{{cost}}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div id="closing-message">
+        <h4>{{closing_message}}</h4>
+      </div>
     </div>
 
-    <div id="recipient-info">
-      <h2>Attention</h2>
-      <p>{{recipient_name}}</p>
-      <p>{{recipient_company}}</p>
-      <p>{{recipient_address_1}}</p>
-      <p>{{recipient_address_2}}</p>
-    </div>
-
-    <div id="invoice-info">
-      <h2>Purpose</h2>
-      <p>{{purpose}}</p>
-
-      <h2>Invoice Number</h2>
-      <p>{{invoice_id}}</p>
-
-      <h2>Payment Method</h2>
-      <p>{{payment_method}}</p>
-
-      <h2>Time Period</h2>
-      <p>{{time_period}}</p>
-    </div>
-
-    <table id="cycle-info">
-      <thead>
-        <tr>
-          <th>Service</th>
-          <th>Hours</th>
-          <th>Cycle Cost</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>{{service}}</td>
-          <td>{{hours}}</td>
-          <td>{{cost}}</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div id="closing-message">
-      <p>{{closing_message}}</p>
-    </div>
-
-    <div id="sender-info">
-      <p>{{sender_name}}</p>
-      <p>{{sender_city}}</p>
-      <p>{{sender_number}}</p>
-      <p>{{sender_ssn}}</p>
-    </div>
+    <footer>
+      <p>{{sender_name}} | {{sender_email}} | {{sender_city}} | {{sender_number}} | {{sender_ssn}}</p>
+    </footer>
   </body>
 </html>
