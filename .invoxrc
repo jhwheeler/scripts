@@ -8,8 +8,8 @@ recipient_address_2=Stockholm, Sweden
 # Work Info
 payment_method=Bank Transfer
 service=Software Development
-hourly_rate=50
-currency=USD
+hourly_rate=38.33
+currency=GBP
 
 # Sender Info
 closing_message=Thank you for your trust and your business. Please be in contact with any questions or requests as they arise.
