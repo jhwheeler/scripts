@@ -31,7 +31,7 @@
       }
 
       #main {
-        padding: 7rem 10rem;
+        padding: 7rem;
       }
 
       header {
@@ -44,7 +44,7 @@
       }
 
       #intro {
-        margin-bottom: 3rem;
+        margin-bottom: 7rem;
       }
 
       #intro h4 {
@@ -117,6 +117,7 @@
 
       <div id="intro">
         <div class="info" id="general-info">
+          <span>{{sender_name}}</span>
           <h4>Date: <span>{{date}}</span></h4>
           <h4>Invoice No: <span>{{invoice_id}}</span></h4>
           <h4>Period: <span>{{time_period}}</span></h4>
@@ -126,6 +127,7 @@
           <h4>{{recipient_name}}</h4>
           <h4>{{recipient_address_1}}</h4>
           <h4>{{recipient_address_2}}</h4>
+          <h4>{{recipient_id}}</h4>
         </div>
       </div>
 
@@ -141,14 +143,10 @@
           <tr>
             <td>{{service}}</td>
             <td>{{hours}}</td>
-            <td id="cost">£{{cost}} {{currency}}</td>
+            <td id="cost">{{currency_symbol}}{{cost}} {{currency_name}}</td>
           </tr>
         </tbody>
       </table>
-
-      <div id="closing-message">
-        <h4>{{closing_message}}</h4>
-      </div>
     </div>
 
     <footer>
