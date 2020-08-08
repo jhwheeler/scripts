@@ -2,6 +2,11 @@
 
 # Format `watson log` output for daily standup
 
+## Expected format is each task on its own line, stripped of punctuation:
+# new feature
+# fix bug
+# clean up code
+
 # 0 is Sunday, 1 is Monday, etc.
 current_weekday=$(gdate +"%w")
 
@@ -13,15 +18,10 @@ elif test "$current_weekday" -eq 1; then
 else last_workday="-1";
 fi
 
-watson log -f $(gdate -d "$last_workday days" +"%Y/%m/%d") |      # get time log for yesterday
+watson log -f $(gdate -d "$last_workday days" +"%Y/%m/%d") |     # get time log for yesterday
 grep -o "\[.*\]" |                                               # find time periods tracked (enclosed in brackets)
 tr -d '[]' |                                                     # remove brackets
 sed 's/_/ /g' |                                                  # replace _ with a space
 tr ',' '\n' |                                                    # split up multi-task time periods into own lines
 perl -pe 's/^\s*//g' |                                           # strip extra whitespace at the beginning of lines
 awk '!seen[$0]++'                                                # remove duplicates
-
-## Expected format is each task on its own line, stripped of punctuation:
-# new feature
-# fix bug
-# clean up code
