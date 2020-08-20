@@ -17,3 +17,7 @@ Updates hourly rate in `invox` config file based on currency exchange rates
 ## lynx_search
 
 Quick search with text browser lynx
+
+## gitopen
+
+Opens modified files in your editor
