@@ -1,6 +1,6 @@
 # Scripts
 
-Automated tasks in Bash
+Automated tasks in Bash and JavaScript
 
 ## standup
 
@@ -21,3 +21,7 @@ Quick search with text browser lynx
 ## gitopen
 
 Opens modified files in your editor
+
+## localizeCountries
+
+Organizes and formats country names per language
