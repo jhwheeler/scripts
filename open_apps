@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# Opens up the apps I use for work
+
+open -a "Google Chrome.app" \
+  https://app.asana.com \
+  https://mail.google.com/mail/u/1/#inbox \
+  https://mail.google.com/mail/u/0/#inbox \
+  https://www.playpilot.com/ \
+  https://calendar.google.com/calendar/b/1/r \
+
+open -a "Slack.app"
+open -a "Spotify.app"
