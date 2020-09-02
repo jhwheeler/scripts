@@ -17,7 +17,7 @@ usage() {
 
   OPTIONS
   -i <string> (required)   invoice_id, the identifer for this invoice
-  -d <string> (required)   date of the invoice
+  -d <string>              issue date of the invoice
   -c <string>              custom config file
   -t <string>              custom html template
   -h                       help (this message)
@@ -25,11 +25,11 @@ usage() {
   EXAMPLES
 
   With defaults:
-  $ watson report -G | invox -i 97 -d \"1 August, 2020\"
+  $ watson report -G | invox -i 97
 
   The invoice will be saved as invoice_97.pdf in the current directory.
 
-  With custom config, template, and filename:
+  With custom config, template, date, and filename:
   $ watson report -G | ./invox -i MC81 -d \"1 August 2020\" -t ./invox_template.html -c ./.invoxrc -f \"Invoice\"
 
   The invoice will be saved as Invoice.pdf in the current directory.
@@ -47,10 +47,10 @@ usage() {
 
 # required args:
 # -i invoice_id
-# -d date
 
 config=~/.config/invox/.invoxrc
 template=~/.config/invox/invox_template.html
+date_issued=$(gdate "+%d %B %Y")
 
 while getopts "i:d:t:c:f:h" opt; do
   case "$opt" in
@@ -58,7 +58,7 @@ while getopts "i:d:t:c:f:h" opt; do
       invoice_id="$OPTARG"
       ;;
     d )
-      date="$OPTARG"
+      date_issued="$OPTARG"
       ;;
     c )
       config="$OPTARG"
@@ -81,10 +81,6 @@ while getopts "i:d:t:c:f:h" opt; do
 done
 shift $((OPTIND -1))
 
-if [[ ! ${date+x} ]]
-then echo "-d required: set the date of the invoice" && usage && exit 1
-fi
-
 if [[ ! ${invoice_id+x} ]]
 then echo "-i required: set the invoice id" && usage && exit 1
 fi
@@ -100,7 +96,7 @@ read -r _
 read -r details
 
 
-# format start and end dates in time_period to dd/mm/yy
+# format start and end dates in time_period to dd.mm.yy
 format_date() {
   echo $(gdate -d "$1" +%d.%m.%y)
 }
@@ -108,6 +104,8 @@ format_date() {
 start_date=$(echo "$time_period" | grep -o '^[^-]*')
 end_date=$(echo "$time_period" | grep -o '[^>]*$')
 time_period="$(format_date "$start_date") - $(format_date "$end_date")"
+
+due_date=$(gdate -d "+13 days" "+%d %B %Y")
 
 hours=$(perl -ne 'print "$&\n" if /\d+(?=h)/' <<< "$details")
 minutes=$(perl -ne 'print "$&\n" if /\d+(?=m)/' <<< "$details")
@@ -134,7 +132,8 @@ cost=$(bc <<< "((${hours} * ${report[hourly_rate]}) + 0.5)/1")
 report[time_period]="$time_period"
 report[hours]="$hours"
 report[cost]="$cost"
-report[date]="$date"
+report[date_issued]="$date_issued"
+report[due_date]="$due_date"
 report[invoice_id]="$invoice_id"
 
 # get all variable names in template file
@@ -145,7 +144,7 @@ vars=$(grep -oE '\{\{([A-Za-z0-9_]+)\}\}' "$template" |
 
 # default filename if no -f flag is set
 if [[ ! ${filename+x} ]]
-then filename="Invoice ${invoice_id} - ${date} - ${report[sender_name]}"
+then filename="Invoice ${invoice_id} - ${date_issued} - ${report[sender_name]}"
 fi
 
 cp "$template" "$filename.html"
