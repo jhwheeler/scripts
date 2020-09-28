@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Changes the file extension of all matching files
+
+# Usage:
+# change-extension js ts
+
+for f in *.$1; do 
+    mv -- "$f" "${f%.$1}.$2"
+done
