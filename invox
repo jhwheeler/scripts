@@ -18,6 +18,7 @@ usage() {
   OPTIONS
   -i <string> (required)   invoice_id, the identifer for this invoice
   -d <string>              issue date of the invoice
+  -e <string>              custom due date of the invoice
   -c <string>              custom config file
   -t <string>              custom html template
   -h                       help (this message)
@@ -45,20 +46,21 @@ usage() {
   "
 }
 
-# required args:
-# -i invoice_id
-
 config=~/.config/invox/.invoxrc
 template=~/.config/invox/invox_template.html
 date_issued=$(gdate "+%d %B %Y")
+due_date=$(gdate -d "+13 days" "+%d %B %Y")
 
-while getopts "i:d:t:c:f:h" opt; do
+while getopts "i:d:e:t:c:f:h" opt; do
   case "$opt" in
     i )
       invoice_id="$OPTARG"
       ;;
     d )
       date_issued="$OPTARG"
+      ;;
+    e )
+      due_date="$OPTARG"
       ;;
     c )
       config="$OPTARG"
@@ -98,14 +100,12 @@ read -r details
 
 # format start and end dates in time_period to dd.mm.yy
 format_date() {
-  echo $(gdate -d "$1" +%d.%m.%y)
+  echo $(gdate -d "$1" +%Y.%m.%d)
 }
 
 start_date=$(echo "$time_period" | grep -o '^[^-]*')
 end_date=$(echo "$time_period" | grep -o '[^>]*$')
 time_period="$(format_date "$start_date") - $(format_date "$end_date")"
-
-due_date=$(gdate -d "+13 days" "+%d %B %Y")
 
 hours=$(perl -ne 'print "$&\n" if /\d+(?=h)/' <<< "$details")
 minutes=$(perl -ne 'print "$&\n" if /\d+(?=m)/' <<< "$details")

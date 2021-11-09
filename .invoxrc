@@ -8,12 +8,12 @@ recipient_address_2=Stockholm, Sweden
 # Work Info
 service=Software Development
 hourly_rate=xxxxx
-currency_name=GBP
-currency_symbol=£
+currency_name=EUR
+currency_symbol=€
 
 # Sender Info
-sender_name=Jackson Holiday Wheeler
-sender_email=jhwheeler@gmail.com
-sender_city=Sofia, Bulgaria
-sender_number=+359 87 86 35 296
-sender_ssn=SSN: 696-03-9593
+sender_name=PT Mythica Creative International
+sender_email=invoice@mythicacreative.com
+sender_city=Kerobokan, Bali, Indonesia
+sender_number=+62 (0)8 135 326 5974
+sender_id=95.619.323.9-906.000
