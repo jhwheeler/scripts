@@ -109,6 +109,8 @@ time_period="$(format_date "$start_date") - $(format_date "$end_date")"
 
 hours=$(perl -ne 'print "$&\n" if /\d+(?=h)/' <<< "$details")
 minutes=$(perl -ne 'print "$&\n" if /\d+(?=m)/' <<< "$details")
+hours=${hours#0}
+minutes=${minutes#0}
 
 # Round up the hour count at a half hour
 if [[ $minutes -gt 30 ]]
