@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Update working branch by pulling base branch and merging it into working branch.
+
+set -x
+
+if [ -z "$1" ]; then
+  echo "Usage: $0 <base_branch>"
+  exit 1
+fi
+
+# Set the base branch name from the first argument provided
+base=$1
+
+# Get the current branch name
+current=$(git rev-parse --abbrev-ref HEAD)
+
+# Checkout the base branch, pull from remote, and checkout the current branch again
+git checkout $base && git pull && git checkout $current
+
+# Merge the base branch into the current branch
+git merge $base
