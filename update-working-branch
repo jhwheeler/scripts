@@ -15,8 +15,8 @@ base=$1
 # Get the current branch name
 current=$(git rev-parse --abbrev-ref HEAD)
 
-# Checkout the base branch, pull from remote, and checkout the current branch again
-git checkout $base && git pull && git checkout $current
+# Checkout the base branch, pull from remote, checkout the current branch again, and finally pull (to make sure $current is up to date as well)
+git checkout $base && git pull && git checkout $current && git pull
 
 # Merge the base branch into the current branch
 git merge $base
