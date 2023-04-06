@@ -3,10 +3,13 @@
 # Opens up the apps I use for work
 
 open -a "Google Chrome.app" \
-  https://mail.google.com/mail/u/1/#inbox \
-  https://mail.google.com/mail/u/0/#inbox \
-  https://www.playpilot.com/ \
   https://calendar.google.com/calendar/b/1/r \
+  https://mail.google.com/mail/u/1/#inbox \
+  https://app.asana.com/0/portfolio/1147223889400520/timeline \
+  https://github.com/Playpilot/web \
+  https://www.playpilot.com \
 
+code ~/projects/playpilot/web/
 open -a "Slack.app"
 open -a "Spotify.app"
+
