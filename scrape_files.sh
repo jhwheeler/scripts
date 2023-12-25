@@ -58,8 +58,4 @@ fi
 # Create directory to save files to
 mkdir -p $dir
 
-for i in "${playlist[@]}"
-do
-  wget -U "Mozilla/5.0 (X11; U; Linux i686 (x86_64); en-GB; rv:1.9.0.1) Gecko/2008070206 Firefox/3.0.1" -v --no-check-certificate --inet4-only -P $dir $i
-done
-
+printf "%s\n" "${playlist[@]}" | xargs -n 1 -P 12 -I {} wget -U "Mozilla/5.0 (X11; U; Linux i686 (x86_64); en-GB; rv:1.9.0.1) Gecko/2008070206 Firefox/3.0.1" -v --no-check-certificate --inet4-only -P $dir {}
