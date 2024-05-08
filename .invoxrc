@@ -1,19 +1,19 @@
 # Recipient Info
-recipient_name=David Mühle
-recipient_company=Playpilot AB
-recipient_id=Org nr. 556946-8530
-recipient_address_1=Valhallavägen 66, 114 27
-recipient_address_2=Stockholm, Sweden
+recipient_name=
+recipient_company=
+recipient_id=
+recipient_address_1=
+recipient_address_2=
 
 # Work Info
-service=Software Development
-hourly_rate=xxxxx
-currency_name=EUR
-currency_symbol=€
+service=
+hourly_rate=
+currency_name=
+currency_symbol=
 
 # Sender Info
-sender_name=PT Mythica Creative International
-sender_email=invoice@mythicacreative.com
-sender_city=Kerobokan, Bali, Indonesia
-sender_number=+62 (0)8 135 326 5974
-sender_id=95.619.323.9-906.000
+sender_name=
+sender_email=
+sender_city=
+sender_number=
+sender_id=
