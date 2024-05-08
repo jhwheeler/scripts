@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Check if the correct number of arguments is given
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 <new_name>"
+    exit 1
+fi
+
+new_name=$1
+remote='origin'  # Set the default remote name
+old_name=$(git rev-parse --abbrev-ref HEAD)  # Get the current branch name
+
+# Confirm the action
+read -p "About to rename $old_name to $new_name. Confirm? (y/n) " response
+if [[ "$response" != "y" ]]; then
+    echo "Rename aborted."
+    exit 1
+fi
+
+# Rename the local branch
+git branch -m $new_name
+
+# Delete the old branch on remote
+git push $remote --delete $old_name
+
+# Prevent git from using the old name when pushing in the next step
+git branch --unset-upstream $new_name
+
+# Push the new branch to remote
+git push $remote $new_name
+
+# Reset the upstream branch for the new_name local branch
+git push $remote -u $new_name
+
+echo "Branch '$old_name' has been renamed to '$new_name' locally and on remote '$remote'."
