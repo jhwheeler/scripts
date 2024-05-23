@@ -6,6 +6,7 @@ open -a "Google Chrome.app" \
   https://localhost:5173 \
 
 open -a "JetBrains Space.app"
+open -a "Figma.app"
 
 code ~/projects/PetersonAcademy/peterson_academy_web
 open -a "Spotify.app"
