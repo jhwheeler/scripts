@@ -3,8 +3,8 @@
 # NB: You need to run this as `. startwork` instead of just `startwork`,
 # so the `cd` command will run in your current shell and not in the script's subshell
 
-cd ~/Projects/PetersonAcademy/peterson_academy_web || { echo "Failed to change directory"; exit 1; }
+cd ~/Projects/peterson_academy_web || { echo "Failed to change directory"; exit 1; }
 
-open_apps
+~/Projects/scripts/open_apps
 
 watson start pa
