@@ -5,18 +5,14 @@
 set -x
 
 if [ -z "$1" ]; then
-  echo "Usage: $0 <base_branch>"
+  echo "Usage: update-working-branch <base_branch>"
   exit 1
 fi
 
-# Set the base branch name from the first argument provided
-base=$1
+base_branch=$1
+working_branch=$(git rev-parse --abbrev-ref HEAD)
 
-# Get the current branch name
-current=$(git rev-parse --abbrev-ref HEAD)
-
-# Checkout the base branch, pull from remote, checkout the current branch again, and finally pull (to make sure $current is up to date as well)
-git checkout $base && git pull && git checkout $current && git pull
-
-# Merge the base branch into the current branch
-git merge $base
+git stash --include-untracked
+git checkout $base_branch && git pull && git checkout $working_branch && git pull
+git stash pop
+git merge $base_branch
