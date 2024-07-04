@@ -12,7 +12,15 @@ fi
 base_branch=$1
 working_branch=$(git rev-parse --abbrev-ref HEAD)
 
-git stash --include-untracked
+if ! git diff-index --quiet HEAD --; then
+  git stash --include-untracked
+  has_stash=true
+fi
+
 git checkout $base_branch && git pull && git checkout $working_branch && git pull
-git stash pop
+
+if [ "$has_stash" = true ]; then
+  git stash pop
+fi
+
 git merge $base_branch
