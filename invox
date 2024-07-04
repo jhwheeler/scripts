@@ -12,6 +12,7 @@ usage() {
   Simple invoice formatter
 
   USAGE: invox [OPTIONS]
+  NB: Requires bash v4.x or higher
 
   Requires time period and hours worked to be passed in a pipeline (see example below)
 
