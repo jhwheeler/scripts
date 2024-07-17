@@ -22,6 +22,7 @@ usage() {
   -e <string>              custom due date of the invoice
   -c <string>              custom config file
   -t <string>              custom html template
+  -n                       no pdf (html only)
   -h                       help (this message)
 
   EXAMPLES
@@ -51,8 +52,9 @@ config=~/.config/invox/.invoxrc
 template=~/.config/invox/invox_template.html
 date_issued=$(gdate "+%d %B %Y")
 due_date=$(gdate -d "+13 days" "+%d %B %Y")
+no_pdf=false
 
-while getopts "i:d:e:t:c:f:h" opt; do
+while getopts "i:d:e:t:c:f:nh" opt; do
   case "$opt" in
     i )
       invoice_id="$OPTARG"
@@ -71,6 +73,9 @@ while getopts "i:d:e:t:c:f:h" opt; do
       ;;
     f )
       filename="$OPTARG"
+      ;;
+    n )
+      no_pdf=true
       ;;
     h )
       usage
@@ -159,18 +164,22 @@ for var in $vars; do
   fi
 done
 
-echo "Creating invoice, saving to $(pwd)/$filename.pdf"
+if [[ $no_pdf == false ]]
+then
+echo "Creating PDF invoice, saving to $(pwd)/$filename.pdf"
+  wkhtmltopdf \
+    --page-size "Letter" \
+    --margin-top "0mm" \
+    --margin-right "0mm"  \
+    --margin-bottom "0mm" \
+    --margin-left "0mm" \
+    --quiet \
+    "$filename.html" "$filename.pdf" && \
+    open "$filename.pdf" || \
+    echo "Failed to create invoice PDF. Check filename for formatting errors."
 
-# generate PDF based on html file
-wkhtmltopdf \
-  --page-size "Letter" \
-  --margin-top "0mm" \
-  --margin-right "0mm"  \
-  --margin-bottom "0mm" \
-  --margin-left "0mm" \
-  --quiet \
-  "$filename.html" "$filename.pdf" && \
-  open "$filename.pdf" || \
-  echo "Failed to create invoice PDF. Check filename for formatting errors."
-
-rm "$filename.html"
+  echo "Removing HTML file"
+  rm "$filename.html"
+else
+  echo "Creating HTML invoice, saving to $(pwd)/$filename.html"
+fi
