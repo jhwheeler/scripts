@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Usage: ./recreate_branch.sh <branch-to-recreate> <source-branch>
+# Usage: ./recreate_branch.sh --source <source-branch> --target <branch-to-recreate>
+# or: ./recreate_branch.sh -s <source-branch> -t <branch-to-recreate>
 
 # This script will recreate a branch based on another branch.
 # It will also stash any changes, fetch the latest changes, and push the new branch.
@@ -11,14 +12,22 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
-# Check if two arguments are provided
-if [ $# -ne 2 ]; then
-    echo "Usage: $0 <branch-to-recreate> <source-branch>"
+# Parse command line arguments
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -s|--source) SOURCE_BRANCH="$2"; shift ;;
+        -t|--target) BRANCH_TO_RECREATE="$2"; shift ;;
+        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    esac
+    shift
+done
+
+# Check if both arguments are provided
+if [ -z "$SOURCE_BRANCH" ] || [ -z "$BRANCH_TO_RECREATE" ]; then
+    echo "Usage: $0 --source <source-branch> --target <branch-to-recreate>"
+    echo "   or: $0 -s <source-branch> -t <branch-to-recreate>"
     exit 1
 fi
-
-BRANCH_TO_RECREATE=$1
-SOURCE_BRANCH=$2
 
 # Stash any uncommitted changes, including untracked files
 echo "Attempting to stash changes..."
