@@ -32,17 +32,17 @@ fi
 echo "Fetching latest changes from origin..."
 git fetch origin || { echo "Failed to fetch from origin"; exit 1; }
 
-echo "Deleting branch $BRANCH_TO_RECREATE locally..."
-git branch -D $BRANCH_TO_RECREATE || { echo "Failed to delete local branch"; exit 1; }
-
-echo "Deleting branch $BRANCH_TO_RECREATE remotely..."
-git push origin --delete $BRANCH_TO_RECREATE || { echo "Failed to delete remote branch"; exit 1; }
-
 echo "Checking out $SOURCE_BRANCH..."
 git checkout $SOURCE_BRANCH || { echo "Failed to checkout source branch"; exit 1; }
 
 echo "Pulling latest changes for $SOURCE_BRANCH..."
 git pull origin $SOURCE_BRANCH || { echo "Failed to pull latest changes"; exit 1; }
+
+echo "Deleting branch $BRANCH_TO_RECREATE locally..."
+git branch -D $BRANCH_TO_RECREATE || { echo "Failed to delete local branch"; exit 1; }
+
+echo "Deleting branch $BRANCH_TO_RECREATE remotely..."
+git push origin --delete $BRANCH_TO_RECREATE || { echo "Failed to delete remote branch"; exit 1; }
 
 echo "Creating new branch $BRANCH_TO_RECREATE..."
 git checkout -b $BRANCH_TO_RECREATE || { echo "Failed to create new branch"; exit 1; }
