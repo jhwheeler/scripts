@@ -8,6 +8,6 @@ open -a "Google Chrome.app" \
 open -a "JetBrains Space.app"
 open -a "Figma.app"
 
-code ~/projects/peterson_academy_web
+cd ~/projects/pa/ && code .
 open -a "Spotify.app"
 
