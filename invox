@@ -50,47 +50,47 @@ usage() {
 
 config=~/.config/invox/.invoxrc
 template=~/.config/invox/invox_template.html
-date_issued=$(gdate "+%d %B %Y")
-due_date=$(gdate -d "+13 days" "+%d %B %Y")
+date_issued=$(date "+%d %B %Y")
+due_date=$(date -d "+13 days" "+%d %B %Y")
 no_pdf=false
 
 while getopts "i:d:e:t:c:f:nh" opt; do
   case "$opt" in
-    i )
-      invoice_id="$OPTARG"
-      ;;
-    d )
-      date_issued="$OPTARG"
-      ;;
-    e )
-      due_date="$OPTARG"
-      ;;
-    c )
-      config="$OPTARG"
-      ;;
-    t )
-      template="$OPTARG"
-      ;;
-    f )
-      filename="$OPTARG"
-      ;;
-    n )
-      no_pdf=true
-      ;;
-    h )
-      usage
-      exit 0
-      ;;
-    \? )
-      usage
-      exit 1
-      ;;
+  i)
+    invoice_id="$OPTARG"
+    ;;
+  d)
+    date_issued="$OPTARG"
+    ;;
+  e)
+    due_date="$OPTARG"
+    ;;
+  c)
+    config="$OPTARG"
+    ;;
+  t)
+    template="$OPTARG"
+    ;;
+  f)
+    filename="$OPTARG"
+    ;;
+  n)
+    no_pdf=true
+    ;;
+  h)
+    usage
+    exit 0
+    ;;
+  \?)
+    usage
+    exit 1
+    ;;
   esac
 done
-shift $((OPTIND -1))
+shift $((OPTIND - 1))
 
-if [[ ! ${invoice_id+x} ]]
-then echo "-i required: set the invoice id" && usage && exit 1
+if [[ ! ${invoice_id+x} ]]; then
+  echo "-i required: set the invoice id" && usage && exit 1
 fi
 if test -t 0; then
   echo "Time sheet required in pipeline. Currently only supports watson."
@@ -103,25 +103,23 @@ read -r time_period
 read -r _
 read -r details
 
-
 # format start and end dates in time_period to dd.mm.yy
 format_date() {
-  echo $(gdate -d "$1" +%Y.%m.%d)
+  echo $(date -d "$1" +%Y.%m.%d)
 }
 
 start_date=$(echo "$time_period" | grep -o '^[^-]*')
 end_date=$(echo "$time_period" | grep -o '[^>]*$')
 time_period="$(format_date "$start_date") - $(format_date "$end_date")"
 
-hours=$(perl -ne 'print "$&\n" if /\d+(?=h)/' <<< "$details")
-minutes=$(perl -ne 'print "$&\n" if /\d+(?=m)/' <<< "$details")
+hours=$(perl -ne 'print "$&\n" if /\d+(?=h)/' <<<"$details")
+minutes=$(perl -ne 'print "$&\n" if /\d+(?=m)/' <<<"$details")
 hours=${hours#0}
 minutes=${minutes#0}
 
-# Round up the hour count at a half hour
-if [[ $minutes -gt 30 ]]
-then
-  ((hours=hours+1))
+# round up hours (for per-hour commenced billing)
+if [[ $minutes -gt 0 ]]; then
+  ((hours = hours + 1))
 fi
 
 # get values for report from config file
@@ -131,10 +129,12 @@ while IFS='=' read -d $'\n' -r key value; do
   [[ "$key" =~ ^([[:space:]]*|[[:space:]]*#.*)$ ]] && continue
 
   report[$key]="$value"
-done < "$config"
+done <"$config"
 
-# calculate & cost to nearest integer
-cost=$(bc <<< "((${hours} * ${report[hourly_rate]}) + 0.5)/1")
+echo "Debug - hours: $hours"
+echo "Debug - hourly rate: ${report[hourly_rate]}"
+# calculate cost as a function of the hours and hourly rate
+cost=$(bc <<<"scale=0; ($hours * ${report[hourly_rate]})/1")
 
 # add date, invoice id, time period, hours, and cost to report
 report[time_period]="$time_period"
@@ -146,13 +146,13 @@ report[invoice_id]="$invoice_id"
 
 # get all variable names in template file
 vars=$(grep -oE '\{\{([A-Za-z0-9_]+)\}\}' "$template" |
-  gsed -rn 's/.*\{\{([A-Za-z0-9_]+)\}\}.*/\1/p' |
+  sed -rn 's/.*\{\{([A-Za-z0-9_]+)\}\}.*/\1/p' |
   sort |
   uniq)
 
 # default filename if no -f flag is set
-if [[ ! ${filename+x} ]]
-then filename="Invoice ${invoice_id} - ${date_issued} - ${report[sender_name]}"
+if [[ ! ${filename+x} ]]; then
+  filename="Invoice ${invoice_id} - ${date_issued} - ${report[sender_name]}"
 fi
 
 cp "$template" "$filename.html"
@@ -160,22 +160,21 @@ cp "$template" "$filename.html"
 for var in $vars; do
   if [ "${report[$var]}" ]; then
     value="${report[$var]}"
-    gsed -i "s/{{$var}}/${report[$var]}/" "$filename.html"
+    sed -i "s/{{$var}}/${report[$var]}/" "$filename.html"
   fi
 done
 
-if [[ $no_pdf == false ]]
-then
-echo "Creating PDF invoice, saving to $(pwd)/$filename.pdf"
+if [[ $no_pdf == false ]]; then
+  echo "Creating PDF invoice, saving to $(pwd)/$filename.pdf"
   wkhtmltopdf \
     --page-size "Letter" \
     --margin-top "0mm" \
-    --margin-right "0mm"  \
+    --margin-right "0mm" \
     --margin-bottom "0mm" \
     --margin-left "0mm" \
     --quiet \
-    "$filename.html" "$filename.pdf" && \
-    open "$filename.pdf" || \
+    "$filename.html" "$filename.pdf" &&
+    xdg-open "$filename.pdf" ||
     echo "Failed to create invoice PDF. Check filename for formatting errors."
 
   echo "Removing HTML file"

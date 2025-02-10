@@ -2,12 +2,10 @@
 
 # Opens up the apps I use for work
 
-open -a "Google Chrome.app" \
-  https://localhost:5173 \
+# Ensure the Python env is running,
+# so we can use apps like watson
+source ~/venv/bin/activate
 
-open -a "JetBrains Space.app"
-open -a "Figma.app"
-
-cd ~/projects/pa/ && code .
-open -a "Spotify.app"
+cd ~/projects/pa/web && pnpm run start
+chromium https://localhost:5173 & disown
 
