@@ -8,6 +8,7 @@ recipient_address_2=
 # Work Info
 service=
 hourly_rate=
+retainer=
 currency_name=
 currency_symbol=
 

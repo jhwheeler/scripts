@@ -14,23 +14,42 @@ usage() {
   USAGE: invox [OPTIONS]
   NB: Requires bash v4.x or higher
 
-  Requires time period and hours worked to be passed in a pipeline (see example below)
+  Requires time period and hours worked to be passed in a pipeline (see example below),
+  OR use -a to specify a fixed amount directly.
 
   OPTIONS
   -i <string> (required)   invoice_id, the identifer for this invoice
-  -d <string>              issue date of the invoice
-  -e <string>              custom due date of the invoice
-  -c <string>              custom config file
-  -t <string>              custom html template
+  -a <number>              fixed amount (overrides retainer in config, skips hours calculation)
+                           if omitted, uses 'retainer' value from config
+  -m <string>              month for invoice period (e.g. "february" or "feb 2026")
+                           auto-calculates start, end, issue date, and due date
+  -s <string>              start date (required when using -a without -m)
+  -x <string>              end date (required when using -a without -m)
+  -l <string>              extra line item title (e.g. "Cursor AI Usage")
+  -L <number>              extra line item amount (e.g. 483)
+  -d <string>              issue date of the invoice (overrides -m calculation)
+  -e <string>              custom due date of the invoice (overrides -m calculation)
+  -c <string>              custom config file (auto-detects *.invoxrc in current dir)
+  -t <string>              custom html template (auto-detects *.invox_template.html in current dir)
   -n                       no pdf (html only)
   -h                       help (this message)
 
   EXAMPLES
 
-  With defaults:
+  With defaults (hours from watson):
   $ watson report -G | invox -i 97
 
   The invoice will be saved as invoice_97.pdf in the current directory.
+
+  With fixed amount (no watson required):
+  $ invox -i 98 -a 1500 -s 2026-01-01 -x 2026-01-31
+
+  The invoice will be saved as invoice_98.pdf with a cost of 1500 (in your configured currency).
+
+  With month-based dates (retainer style):
+  $ invox -i 99 -a 20000 -m february -l "Cursor AI Usage" -L 500
+
+  Auto-calculates: period Feb 1-28, issue date Mar 1, due date Mar 15.
 
   With custom config, template, date, and filename:
   $ watson report -G | ./invox -i MC81 -d \"1 August 2020\" -t ./invox_template.html -c ./.invoxrc -f \"Invoice\"
@@ -48,16 +67,41 @@ usage() {
   "
 }
 
-config=~/.config/invox/.invoxrc
-template=~/.config/invox/invox_template.html
+# default config and template locations
+config=""
+template=""
 date_issued=$(date "+%d %B %Y")
 due_date=$(date -d "+13 days" "+%d %B %Y")
 no_pdf=false
+fixed_amount=""
+month_arg=""
+start_date_arg=""
+end_date_arg=""
+extra_title=""
+extra_amount=""
 
-while getopts "i:d:e:t:c:f:nh" opt; do
+while getopts "i:a:m:s:x:l:L:d:e:t:c:f:nh" opt; do
   case "$opt" in
   i)
     invoice_id="$OPTARG"
+    ;;
+  a)
+    fixed_amount="$OPTARG"
+    ;;
+  m)
+    month_arg="$OPTARG"
+    ;;
+  s)
+    start_date_arg="$OPTARG"
+    ;;
+  x)
+    end_date_arg="$OPTARG"
+    ;;
+  l)
+    extra_title="$OPTARG"
+    ;;
+  L)
+    extra_amount="$OPTARG"
     ;;
   d)
     date_issued="$OPTARG"
@@ -92,54 +136,148 @@ shift $((OPTIND - 1))
 if [[ ! ${invoice_id+x} ]]; then
   echo "-i required: set the invoice id" && usage && exit 1
 fi
-if test -t 0; then
-  echo "Time sheet required in pipeline. Currently only supports watson."
-  usage
-  exit 1
+
+# resolve config: flag > local directory > default
+if [[ -z "$config" ]]; then
+  local_config=$(find . -maxdepth 1 \( -name "*.invoxrc" -o -name ".invoxrc" \) 2>/dev/null | head -1)
+  if [[ -n "$local_config" ]]; then
+    config="$local_config"
+    echo "Auto-detected config: $config"
+  else
+    config=~/.config/invox/.invoxrc
+  fi
 fi
 
-# read time period and hours worked from stdin (piped from `watson report -G`)
-read -r time_period
-read -r _
-read -r details
-
-# format start and end dates in time_period to dd.mm.yy
-format_date() {
-  echo $(date -d "$1" +%Y.%m.%d)
-}
-
-start_date=$(echo "$time_period" | grep -o '^[^-]*')
-end_date=$(echo "$time_period" | grep -o '[^>]*$')
-time_period="$(format_date "$start_date") - $(format_date "$end_date")"
-
-hours=$(perl -ne 'print "$&\n" if /\d+(?=h)/' <<<"$details")
-minutes=$(perl -ne 'print "$&\n" if /\d+(?=m)/' <<<"$details")
-hours=${hours#0}
-minutes=${minutes#0}
-
-# round up hours (for per-hour commenced billing)
-if [[ $minutes -gt 0 ]]; then
-  ((hours = hours + 1))
+# resolve template: flag > local directory > default
+if [[ -z "$template" ]]; then
+  local_template=$(find . -maxdepth 1 \( -name "*.invox_template.html" -o -name ".invox_template.html" \) 2>/dev/null | head -1)
+  if [[ -n "$local_template" ]]; then
+    template="$local_template"
+    echo "Auto-detected template: $template"
+  else
+    template=~/.config/invox/invox_template.html
+  fi
 fi
 
 # get values for report from config file
 declare -A report
 while IFS='=' read -d $'\n' -r key value; do
-  # Skip empty lines & lines starting with sharp (comments)
+  # skip empty lines and comments
   [[ "$key" =~ ^([[:space:]]*|[[:space:]]*#.*)$ ]] && continue
 
   report[$key]="$value"
 done <"$config"
 
-echo "Debug - hours: $hours"
-echo "Debug - hourly rate: ${report[hourly_rate]}"
-# calculate cost as a function of the hours and hourly rate
-cost=$(bc <<<"scale=0; ($hours * ${report[hourly_rate]})/1")
+# format date to YYYY.MM.DD
+format_date() {
+  date -d "$1" +%Y.%m.%d
+}
 
-# add date, invoice id, time period, hours, and cost to report
+# format number with thousand separators (20000 → 20,000)
+format_number() {
+  printf "%'d" "$1"
+}
+
+# use retainer from config if no -a flag and not in pipeline mode
+if [[ -z "$fixed_amount" ]] && [[ -v "report[retainer]" ]] && [[ -n "${report[retainer]}" ]]; then
+  fixed_amount="${report[retainer]}"
+  echo "Using retainer amount from config: ${report[currency_symbol]}$fixed_amount ${report[currency_name]}"
+fi
+
+# handle fixed amount mode vs watson pipeline mode
+if [[ -n "$fixed_amount" ]]; then
+  # fixed amount mode - no pipeline required
+  
+  # if month is provided, calculate all dates from it
+  if [[ -n "$month_arg" ]]; then
+    # parse month to get first day of month (handles "february", "feb 2026", etc.)
+    first_of_month=$(date -d "$month_arg" +%Y-%m-01 2>/dev/null) || {
+      # if just month name, assume current year
+      first_of_month=$(date -d "1 $month_arg" +%Y-%m-01)
+    }
+    
+    start_date_arg="$first_of_month"
+    end_date_arg=$(date -d "$first_of_month +1 month -1 day" +%Y-%m-%d)
+    
+    # issue date is 1st of next month (unless overridden by -d)
+    if [[ "$date_issued" == $(date "+%d %B %Y") ]]; then
+      date_issued=$(date -d "$first_of_month +1 month" "+%d %B %Y")
+    fi
+    
+    # due date is 14 days after issue date (unless overridden by -e)
+    if [[ "$due_date" == $(date -d "+13 days" "+%d %B %Y") ]]; then
+      due_date=$(date -d "$first_of_month +1 month +14 days" "+%d %B %Y")
+    fi
+    
+    echo "Month: $month_arg"
+    echo "  Period: $start_date_arg to $end_date_arg"
+    echo "  Issue date: $date_issued"
+    echo "  Due date: $due_date"
+  elif [[ -z "$start_date_arg" || -z "$end_date_arg" ]]; then
+    echo "-s and -x (or -m) required when using -a: set the start and end dates"
+    usage
+    exit 1
+  fi
+  
+  time_period="$(format_date "$start_date_arg") - $(format_date "$end_date_arg")"
+  cost="$fixed_amount"
+  echo "Using fixed amount: ${report[currency_symbol]}$cost ${report[currency_name]}"
+else
+  # watson pipeline mode
+  if test -t 0; then
+    echo "Time sheet required in pipeline. Currently only supports watson."
+    echo "Or use -a <amount> -s <start> -x <end> for a fixed amount invoice."
+    usage
+    exit 1
+  fi
+
+  # read time period and hours worked from stdin (piped from `watson report -G`)
+  read -r time_period
+  read -r _
+  read -r details
+
+  start_date=$(echo "$time_period" | grep -o '^[^-]*')
+  end_date=$(echo "$time_period" | grep -o '[^>]*$')
+  time_period="$(format_date "$start_date") - $(format_date "$end_date")"
+
+  hours=$(perl -ne 'print "$&\n" if /\d+(?=h)/' <<<"$details")
+  minutes=$(perl -ne 'print "$&\n" if /\d+(?=m)/' <<<"$details")
+  hours=${hours#0}
+  minutes=${minutes#0}
+
+  # round up hours (for per-hour commenced billing)
+  if [[ $minutes -gt 0 ]]; then
+    ((hours = hours + 1))
+  fi
+
+  echo "Debug - hours: $hours"
+  echo "Debug - hourly rate: ${report[hourly_rate]}"
+  # calculate cost as a function of the hours and hourly rate
+  cost=$(bc <<<"scale=0; ($hours * ${report[hourly_rate]})/1")
+fi
+
+# handle extra line item and calculate total
+has_extra=false
+if [[ -n "$extra_title" && -n "$extra_amount" ]]; then
+  has_extra=true
+  total=$((cost + extra_amount))
+  echo "Extra line item: $extra_title - ${report[currency_symbol]}$(format_number "$extra_amount") ${report[currency_name]}"
+  echo "Total: ${report[currency_symbol]}$(format_number "$total") ${report[currency_name]}"
+else
+  total="$cost"
+fi
+
+# format numbers for display
+cost=$(format_number "$cost")
+total=$(format_number "$total")
+[[ -n "$extra_amount" ]] && extra_amount=$(format_number "$extra_amount")
+
+# add variables to report
 report[time_period]="$time_period"
-report[hours]="$hours"
 report[cost]="$cost"
+report[total]="$total"
+report[extra_title]="$extra_title"
+report[extra_amount]="$extra_amount"
 report[date_issued]="$date_issued"
 report[due_date]="$due_date"
 report[invoice_id]="$invoice_id"
@@ -157,10 +295,25 @@ fi
 
 cp "$template" "$filename.html"
 
+# remove conditional sections if not needed
+if [[ "$has_extra" == false ]]; then
+  sed -i '/<!-- BEGIN extra_row -->/,/<!-- END extra_row -->/d' "$filename.html"
+  sed -i '/<!-- BEGIN total_row -->/,/<!-- END total_row -->/d' "$filename.html"
+else
+  # remove just the comment markers, keep the content
+  sed -i '/<!-- BEGIN extra_row -->/d; /<!-- END extra_row -->/d' "$filename.html"
+  sed -i '/<!-- BEGIN total_row -->/d; /<!-- END total_row -->/d' "$filename.html"
+fi
+
+# substitute all template variables
 for var in $vars; do
-  if [ "${report[$var]}" ]; then
-    value="${report[$var]}"
+  # skip optional variables that may be empty
+  [[ "$var" == "extra_title" || "$var" == "extra_amount" || "$var" == "total" ]] && [[ "$has_extra" == false ]] && continue
+  
+  if [[ -v "report[$var]" ]] && [[ -n "${report[$var]}" ]]; then
     sed -i "s/{{$var}}/${report[$var]}/" "$filename.html"
+  else
+    echo "Warning: template variable '{{$var}}' not found in config"
   fi
 done
 
