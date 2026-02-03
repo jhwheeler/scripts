@@ -189,11 +189,8 @@ if [[ -n "$fixed_amount" ]]; then
   
   # if month is provided, calculate all dates from it
   if [[ -n "$month_arg" ]]; then
-    # parse month to get first day of month (handles "february", "feb 2026", etc.)
-    first_of_month=$(date -d "$month_arg" +%Y-%m-01 2>/dev/null) || {
-      # if just month name, assume current year
-      first_of_month=$(date -d "1 $month_arg" +%Y-%m-01)
-    }
+    # parse month to get first day of month (e.g., "february 2026", "dec 2025")
+    first_of_month=$(date -d "1 $month_arg" +%Y-%m-01)
     
     start_date_arg="$first_of_month"
     end_date_arg=$(date -d "$first_of_month +1 month -1 day" +%Y-%m-%d)
