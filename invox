@@ -21,7 +21,7 @@ usage() {
   -i <string> (required)   invoice_id, the identifer for this invoice
   -a <number>              fixed amount (overrides retainer in config, skips hours calculation)
                            if omitted, uses 'retainer' value from config
-  -m <string>              month for invoice period (e.g. "february" or "feb 2026")
+  -m <string>              month for invoice period (e.g. "january" or "december 2025")
                            auto-calculates start, end, issue date, and due date
   -s <string>              start date (required when using -a without -m)
   -x <string>              end date (required when using -a without -m)
@@ -47,9 +47,14 @@ usage() {
   The invoice will be saved as invoice_98.pdf with a cost of 1500 (in your configured currency).
 
   With month-based dates (retainer style):
-  $ invox -i 99 -a 20000 -m february -l "Cursor AI Usage" -L 500
+  $ invox -i 99 -m january -l "Cursor AI Usage" -L 500
 
-  Auto-calculates: period Feb 1-28, issue date Mar 1, due date Mar 15.
+  Auto-calculates: period Jan 1-31 (current year), issue date Feb 1, due date Feb 15.
+
+  For a different year (e.g., invoicing late for December):
+  $ invox -i 100 -m "december 2025"
+
+  Auto-calculates: period Dec 1-31 2025, issue date Jan 1 2026, due date Jan 15 2026.
 
   With custom config, template, date, and filename:
   $ watson report -G | ./invox -i MC81 -d \"1 August 2020\" -t ./invox_template.html -c ./.invoxrc -f \"Invoice\"
@@ -189,7 +194,8 @@ if [[ -n "$fixed_amount" ]]; then
   
   # if month is provided, calculate all dates from it
   if [[ -n "$month_arg" ]]; then
-    # parse month to get first day of month (e.g., "february 2026", "dec 2025")
+    # parse month to get first day of month
+    # accepts "january" (current year) or "december 2025" (specific year)
     first_of_month=$(date -d "1 $month_arg" +%Y-%m-01)
     
     start_date_arg="$first_of_month"
