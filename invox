@@ -181,7 +181,6 @@ format_number() {
 # use retainer from config if no -a flag and not in pipeline mode
 if [[ -z "$fixed_amount" ]] && [[ -v "report[retainer]" ]] && [[ -n "${report[retainer]}" ]]; then
   fixed_amount="${report[retainer]}"
-  echo "Using retainer amount from config: ${report[currency_symbol]}$fixed_amount ${report[currency_name]}"
 fi
 
 # handle fixed amount mode vs watson pipeline mode
@@ -221,7 +220,7 @@ if [[ -n "$fixed_amount" ]]; then
   
   time_period="$(format_date "$start_date_arg") - $(format_date "$end_date_arg")"
   cost="$fixed_amount"
-  echo "Using fixed amount: ${report[currency_symbol]}$cost ${report[currency_name]}"
+  echo "Fixed amount: ${report[currency_symbol]}$cost ${report[currency_name]}"
 else
   # watson pipeline mode
   if test -t 0; then
@@ -305,13 +304,24 @@ else
   sed -i '/<!-- BEGIN total_row -->/d; /<!-- END total_row -->/d' "$filename.html"
 fi
 
+# escape special sed characters in replacement string
+escape_sed() {
+  local val="$1"
+  # escape backslashes first, then forward slashes, then ampersands
+  val="${val//\\/\\\\}"
+  val="${val//\//\\/}"
+  val="${val//&/\\&}"
+  printf '%s' "$val"
+}
+
 # substitute all template variables
 for var in $vars; do
   # skip optional variables that may be empty
   [[ "$var" == "extra_title" || "$var" == "extra_amount" || "$var" == "total" ]] && [[ "$has_extra" == false ]] && continue
   
   if [[ -v "report[$var]" ]] && [[ -n "${report[$var]}" ]]; then
-    sed -i "s/{{$var}}/${report[$var]}/" "$filename.html"
+    escaped_value=$(escape_sed "${report[$var]}")
+    sed -i "s/{{$var}}/$escaped_value/" "$filename.html"
   else
     echo "Warning: template variable '{{$var}}' not found in config"
   fi
@@ -327,7 +337,7 @@ if [[ $no_pdf == false ]]; then
     --margin-left "0mm" \
     --quiet \
     "$filename.html" "$filename.pdf" &&
-    xdg-open "$filename.pdf" ||
+    xdg-open "$filename.pdf" 2>/dev/null ||
     echo "Failed to create invoice PDF. Check filename for formatting errors."
 
   echo "Removing HTML file"
