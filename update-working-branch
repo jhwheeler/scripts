@@ -17,10 +17,18 @@ if ! git diff-index --quiet HEAD --; then
   has_stash=true
 fi
 
-git checkout $base_branch && git pull && git checkout $working_branch && git pull
+# Check if the base branch is checked out in another worktree
+if git worktree list --porcelain | grep -q "branch refs/heads/$base_branch"; then
+  # Worktree mode: can't checkout base branch, so fetch and merge the remote ref
+  git fetch origin $base_branch && git pull
+  merge_ref="origin/$base_branch"
+else
+  git checkout $base_branch && git pull && git checkout $working_branch && git pull
+  merge_ref="$base_branch"
+fi
 
 if [ "$has_stash" = true ]; then
   git stash pop
 fi
 
-git merge $base_branch
+git merge $merge_ref
