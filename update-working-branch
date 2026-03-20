@@ -10,25 +10,16 @@ if [ -z "$1" ]; then
 fi
 
 base_branch=$1
-working_branch=$(git rev-parse --abbrev-ref HEAD)
 
 if ! git diff-index --quiet HEAD --; then
   git stash --include-untracked
   has_stash=true
 fi
 
-# Check if the base branch is checked out in another worktree
-if git worktree list --porcelain | grep -q "branch refs/heads/$base_branch"; then
-  # Worktree mode: can't checkout base branch, so fetch and merge the remote ref
-  git fetch origin $base_branch && git pull
-  merge_ref="origin/$base_branch"
-else
-  git checkout $base_branch && git pull && git checkout $working_branch && git pull
-  merge_ref="$base_branch"
-fi
+git fetch origin $base_branch && git pull
 
 if [ "$has_stash" = true ]; then
   git stash pop
 fi
 
-git merge $merge_ref
+git merge origin/$base_branch
