@@ -18,8 +18,27 @@ if awk "BEGIN {exit !($load > $LOAD_THRESHOLD)}"; then
     fi
 fi
 
-# Check for any process using >CPU_THRESHOLD% CPU (exclude this script and ps itself)
-high_cpu=$(ps aux --sort=-%cpu | awk -v thresh="$CPU_THRESHOLD" -v mypid="$$" 'NR>1 && $3>thresh && $2!=mypid && $11!="ps" && $11!="awk" {printf "  PID %s (%s) user=%s CPU=%.1f%% MEM=%.1f%%\n", $2, $11, $1, $3, $4}')
+# Check for any process using >CPU_THRESHOLD% CPU
+# Exclude this script, its ancestors (openclaw invoking us), and short-lived transient processes
+# Build exclusion list: self + all ancestor PIDs up to init
+_exclude_pids="$$"
+_p=$$
+while [ "$_p" -gt 1 ] 2>/dev/null; do
+    _p=$(awk '{print $4}' /proc/$_p/stat 2>/dev/null) || break
+    _exclude_pids="${_exclude_pids}|${_p}"
+done
+# Use ps with cumulative CPU time; skip processes with <10s total CPU (transient spikes)
+high_cpu=$(ps -eo pid,user,%cpu,%mem,cputime,comm --sort=-%cpu | awk -v thresh="$CPU_THRESHOLD" -v excl="$_exclude_pids" '
+    BEGIN { split(excl, ep, "|"); for (i in ep) expids[ep[i]]=1 }
+    NR>1 && $3>thresh && !($1 in expids) && $6!="ps" && $6!="awk" {
+        # Parse cputime HH:MM:SS or MM:SS into total seconds
+        n=split($5, t, ":")
+        if (n==3) secs=t[1]*3600+t[2]*60+t[3]
+        else if (n==2) secs=t[1]*60+t[2]
+        else secs=$5
+        if (secs < 10) next  # skip transient startup spikes
+        printf "  PID %s (%s) user=%s CPU=%.1f%% MEM=%.1f%% cputime=%s\n", $1, $6, $2, $3, $4, $5
+    }')
 if [ -n "$high_cpu" ]; then
     problems="${problems}HIGH CPU PROCESSES:\n${high_cpu}\n"
 fi
