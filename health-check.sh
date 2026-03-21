@@ -28,16 +28,25 @@ while [ "$_p" -gt 1 ] 2>/dev/null; do
     _exclude_pids="${_exclude_pids}|${_p}"
 done
 # Use ps with cumulative CPU time; skip processes with <10s total CPU (transient spikes)
-high_cpu=$(ps -eo pid,user,%cpu,%mem,cputime,comm --sort=-%cpu | awk -v thresh="$CPU_THRESHOLD" -v excl="$_exclude_pids" '
+high_cpu=$(ps -eo pid,user,%cpu,%mem,cputime,args --sort=-%cpu | awk -v thresh="$CPU_THRESHOLD" -v excl="$_exclude_pids" '
     BEGIN { split(excl, ep, "|"); for (i in ep) expids[ep[i]]=1 }
     NR>1 && $3>thresh && !($1 in expids) && $6!="ps" && $6!="awk" {
+        # Skip legitimate high-CPU tasks
+        if ($0 ~ /WhisperModel|whisper|transcribe/) next  # Audio transcription
+        if ($0 ~ /ffmpeg/) next  # Video/audio processing
+        if ($0 ~ /cargo build|rustc|gcc|g\+\+|make/) next  # Compilation
+        if ($0 ~ /npm install|yarn|pip install/) next  # Package installation
+        
         # Parse cputime HH:MM:SS or MM:SS into total seconds
         n=split($5, t, ":")
         if (n==3) secs=t[1]*3600+t[2]*60+t[3]
         else if (n==2) secs=t[1]*60+t[2]
         else secs=$5
         if (secs < 10) next  # skip transient startup spikes
-        printf "  PID %s (%s) user=%s CPU=%.1f%% MEM=%.1f%% cputime=%s\n", $1, $6, $2, $3, $4, $5
+        
+        # Extract command name from args for display
+        cmd = $6; sub(/^.*\//, "", cmd)  # strip path
+        printf "  PID %s (%s) user=%s CPU=%.1f%% MEM=%.1f%% cputime=%s\n", $1, cmd, $2, $3, $4, $5
     }')
 if [ -n "$high_cpu" ]; then
     problems="${problems}HIGH CPU PROCESSES:\n${high_cpu}\n"
