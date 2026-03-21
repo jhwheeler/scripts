@@ -58,11 +58,11 @@ if [ -n "$high_mem" ]; then
     problems="${problems}HIGH MEMORY PROCESSES:\n${high_mem}\n"
 fi
 
-# Check for zombie processes - use both ps and /proc/stat for validation
+# Check for zombie processes - validate with both ps and /proc directly
 zombies_ps=$(ps -eo stat | grep -c '^Z')
-zombies_proc=$(awk '/^processes/ {p=$2} /^procs_blocked/ {b=$2} /^procs_running/ {r=$2} END {print p-b-r}' /proc/stat 2>/dev/null || echo 0)
-# Cross-validate: if ps shows zombies but /proc/stat doesn't, it's likely a false positive
-if [ "$zombies_ps" -gt 0 ] && [ "$zombies_proc" -gt 0 ]; then
+zombies_proc=$(find /proc -maxdepth 1 -name '[0-9]*' -exec awk '/^State:.*zombie/ {print 1; exit}' {}/stat \; 2>/dev/null | wc -l)
+# Cross-validate: only alert if both methods agree there are zombies
+if [ "$zombies_ps" -gt 0 ] && [ "$zombies_proc" -gt 0 ] && [ "$zombies_ps" -eq "$zombies_proc" ]; then
     problems="${problems}ZOMBIE PROCESSES: ${zombies_ps}\n"
 fi
 
