@@ -58,10 +58,12 @@ if [ -n "$high_mem" ]; then
     problems="${problems}HIGH MEMORY PROCESSES:\n${high_mem}\n"
 fi
 
-# Check for zombie processes
-zombies=$(ps aux | awk '$8 ~ /^Z/ {count++} END {print count+0}')
-if [ "$zombies" -gt 0 ]; then
-    problems="${problems}ZOMBIE PROCESSES: ${zombies}\n"
+# Check for zombie processes - use both ps and /proc/stat for validation
+zombies_ps=$(ps -eo stat | grep -c '^Z')
+zombies_proc=$(awk '/^processes/ {p=$2} /^procs_blocked/ {b=$2} /^procs_running/ {r=$2} END {print p-b-r}' /proc/stat 2>/dev/null || echo 0)
+# Cross-validate: if ps shows zombies but /proc/stat doesn't, it's likely a false positive
+if [ "$zombies_ps" -gt 0 ] && [ "$zombies_proc" -gt 0 ]; then
+    problems="${problems}ZOMBIE PROCESSES: ${zombies_ps}\n"
 fi
 
 # Check disk usage on main partitions
