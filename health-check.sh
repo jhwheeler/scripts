@@ -2,7 +2,7 @@
 # System health check — runs periodically via cron
 # Only outputs something if there's a problem (non-zero exit = trouble)
 
-LOAD_THRESHOLD=4.0
+LOAD_THRESHOLD=6.0
 CPU_THRESHOLD=80
 MEM_THRESHOLD=50
 
