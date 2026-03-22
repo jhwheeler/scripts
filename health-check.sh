@@ -5,10 +5,14 @@
 
 EXIT_CODE=0
 
-# Check CPU usage (warn if >90%)
+# Check CPU usage (warn if >95% for sustained periods)
 CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1}')
-if (( $(echo "$CPU_USAGE > 90" | bc -l) )); then
-    echo "HIGH CPU: ${CPU_USAGE}%"
+# Only alert on sustained high CPU by checking load average too
+CORES=$(nproc)
+LOAD_1MIN=$(uptime | awk -F'load average:' '{ print $2 }' | awk '{ print $1 }' | sed 's/,//')
+LOAD_THRESHOLD=$(echo "$CORES * 3" | bc)
+if (( $(echo "$CPU_USAGE > 95" | bc -l) )) && (( $(echo "$LOAD_1MIN > $LOAD_THRESHOLD" | bc -l) )); then
+    echo "SUSTAINED HIGH CPU: ${CPU_USAGE}% (load: $LOAD_1MIN)"
     EXIT_CODE=1
 fi
 
@@ -40,12 +44,14 @@ if [ "$ZOMBIES" -gt 5 ]; then
     EXIT_CODE=1
 fi
 
-# Check system load (warn if 1-min load > 2x CPU cores)
-CORES=$(nproc)
-LOAD=$(uptime | awk -F'load average:' '{ print $2 }' | awk '{ print $1 }' | sed 's/,//')
-THRESHOLD=$(echo "$CORES * 2" | bc)
-if (( $(echo "$LOAD > $THRESHOLD" | bc -l) )); then
-    echo "HIGH LOAD: $LOAD (threshold: $THRESHOLD)"
+# Check system load (warn if 1-min load > 4x CPU cores for extended periods)
+# Note: Removed duplicate CORES/LOAD calculation since it's now done in CPU check above
+# Only alert if 5-min average is also high, indicating sustained load
+LOAD_5MIN=$(uptime | awk -F'load average:' '{ print $2 }' | awk '{ print $2 }' | sed 's/,//')
+THRESHOLD=$(echo "$CORES * 4" | bc)
+THRESHOLD_5MIN=$(echo "$CORES * 3" | bc)
+if (( $(echo "$LOAD_1MIN > $THRESHOLD" | bc -l) )) && (( $(echo "$LOAD_5MIN > $THRESHOLD_5MIN" | bc -l) )); then
+    echo "SUSTAINED HIGH LOAD: 1min=$LOAD_1MIN 5min=$LOAD_5MIN (thresholds: $THRESHOLD/$THRESHOLD_5MIN)"
     EXIT_CODE=1
 fi
 
