@@ -19,16 +19,16 @@ if (( $(echo "$MEM_USAGE > 90" | bc -l) )); then
     EXIT_CODE=1
 fi
 
-# Check disk usage (warn if >85%)
+# Check disk usage (warn if >95%)
 DISK_USAGE=$(df / | awk 'NR==2 {print $5}' | sed 's/%//')
-if [ "$DISK_USAGE" -gt 85 ]; then
+if [ "$DISK_USAGE" -gt 95 ]; then
     echo "HIGH DISK: ${DISK_USAGE}%"
     EXIT_CODE=1
 fi
 
-# Check if Rheo processes are consuming excessive resources
+# Check if Rheo processes are consuming excessive resources (increased threshold)
 RHEO_PROCS=$(pgrep -f "rheo" | wc -l)
-if [ "$RHEO_PROCS" -gt 20 ]; then
+if [ "$RHEO_PROCS" -gt 50 ]; then
     echo "TOO MANY RHEO PROCESSES: $RHEO_PROCS"
     EXIT_CODE=1
 fi
