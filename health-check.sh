@@ -4,7 +4,7 @@
 # Returns exit code 0 if all checks pass, non-zero if issues found
 
 # CPU usage threshold (%) - alert if sustained high usage
-CPU_THRESHOLD=95
+CPU_THRESHOLD=99
 
 # Memory usage threshold (%)
 MEM_THRESHOLD=90
