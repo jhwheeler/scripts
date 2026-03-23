@@ -67,10 +67,11 @@ if [ -n "$STUCK_RHEO" ]; then
     exit 1
 fi
 
-# Check load average
+# Check load average - be lenient for development work (npm/vitest/build processes)
 LOAD_AVG=$(uptime | awk '{print $10}' | sed 's/,//')
 CORE_COUNT=$(nproc)
-if (( $(echo "$LOAD_AVG > $CORE_COUNT * 2" | bc -l 2>/dev/null) )); then
+# Alert only if load > 4x cores (indicating actual system stress, not just busy development)
+if (( $(echo "$LOAD_AVG > $CORE_COUNT * 4" | bc -l 2>/dev/null) )); then
     echo "HIGH LOAD AVERAGE: $LOAD_AVG (cores: $CORE_COUNT)"
     exit 1
 fi
