@@ -16,7 +16,7 @@ DISK_THRESHOLD=90
 PROC_THRESHOLD=500
 
 # Check CPU usage (1 minute average)
-CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1}')
+CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{for(i=1;i<=NF;i++) if($(i+1) == "id,") {printf "%.1f", 100-$i; break}}')
 if (( $(echo "$CPU_USAGE > $CPU_THRESHOLD" | bc -l) )); then
     echo "HIGH CPU: ${CPU_USAGE}% (threshold: ${CPU_THRESHOLD}%)"
     exit 1
