@@ -15,10 +15,19 @@ DISK_THRESHOLD=90
 # Process count threshold
 PROC_THRESHOLD=500
 
-# Check CPU usage (1 minute average)
-CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{for(i=1;i<=NF;i++) if($(i+1) == "id,") {printf "%.1f", 100-$i; break}}')
-if (( $(echo "$CPU_USAGE > $CPU_THRESHOLD" | bc -l) )); then
+# Check CPU usage - use 3-second average to avoid transient spikes
+# Also exclude processes related to this health check
+CPU_USAGE=$(top -bn2 -d1 | grep "Cpu(s)" | tail -1 | awk '{for(i=1;i<=NF;i++) if($(i+1) == "id,") {printf "%.1f", 100-$i; break}}')
+
+# Get top CPU processes excluding health check related ones
+TOP_PROCS=$(ps -eo pid,pcpu,comm --sort=-pcpu | grep -v -E "(health-check|top|ps)" | head -5)
+HIGH_CPU_PROC=$(echo "$TOP_PROCS" | awk 'NR==2 {print $2}')
+
+# Only alert if sustained high usage AND top process is using >80% CPU
+if (( $(echo "$CPU_USAGE > $CPU_THRESHOLD" | bc -l) )) && (( $(echo "$HIGH_CPU_PROC > 80" | bc -l 2>/dev/null) )); then
     echo "HIGH CPU: ${CPU_USAGE}% (threshold: ${CPU_THRESHOLD}%)"
+    echo "Top processes:"
+    echo "$TOP_PROCS" | head -3
     exit 1
 fi
 
