@@ -7,7 +7,7 @@
 CPU_THRESHOLD=105
 
 # Memory usage threshold (%)
-MEM_THRESHOLD=90
+MEM_THRESHOLD=95
 
 # Disk usage threshold (%)
 DISK_THRESHOLD=90
