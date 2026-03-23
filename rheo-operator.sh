@@ -96,8 +96,15 @@ for session_file in "$TMPDIR"/rheo_*; do
         result=$(run_cmd "rheo approve '$session'")
         ACTIONS+=("Approved $session (clean review): $result")
       elif [[ "$verdict" == "CHANGES_RECOMMENDED" ]]; then
-        result=$(run_cmd "rheo approve '$session'")
-        ACTIONS+=("Approved $session (changes recommended → fix cycle): $result")
+        # Use iterate instead of approve — approve can silently fail to advance
+        result=$(run_cmd "rheo iterate '$session' 'Address reviewer findings'")
+        if echo "$result" | grep -q "Iteration"; then
+          ACTIONS+=("Iterated $session (reviewer changes): $result")
+        else
+          # Fallback to approve
+          result=$(run_cmd "rheo approve '$session'")
+          ACTIONS+=("Approved $session (changes recommended → fix cycle): $result")
+        fi
       fi
     fi
     continue
