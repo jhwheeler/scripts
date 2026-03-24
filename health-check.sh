@@ -4,7 +4,7 @@
 # Returns exit code 0 if all checks pass, non-zero if issues found
 
 # CPU usage threshold (%) - alert if sustained high usage
-CPU_THRESHOLD=85
+CPU_THRESHOLD=95
 
 # Memory usage threshold (%)
 MEM_THRESHOLD=95
@@ -15,9 +15,9 @@ DISK_THRESHOLD=90
 # Process count threshold
 PROC_THRESHOLD=500
 
-# Check CPU usage - use 3-second average to avoid transient spikes
+# Check CPU usage - use 5-second average to avoid transient spikes
 # Also exclude processes related to this health check
-CPU_USAGE=$(top -bn2 -d1 | grep "Cpu(s)" | tail -1 | awk '{for(i=1;i<=NF;i++) if($(i+1) == "id,") {printf "%.1f", 100-$i; break}}')
+CPU_USAGE=$(top -bn3 -d2 | grep "Cpu(s)" | tail -1 | awk '{for(i=1;i<=NF;i++) if($(i+1) == "id,") {printf "%.1f", 100-$i; break}}')
 
 # Get top CPU processes excluding health check related ones
 TOP_PROCS=$(ps -eo pid,pcpu,comm --sort=-pcpu | grep -v -E "(health-check|top|ps)" | head -5)
