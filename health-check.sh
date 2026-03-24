@@ -21,7 +21,10 @@ CPU_USAGE=$(top -bn2 -d1 | grep "Cpu(s)" | tail -1 | awk '{for(i=1;i<=NF;i++) if
 
 # Get top CPU processes excluding health check related ones
 TOP_PROCS=$(ps -eo pid,pcpu,comm --sort=-pcpu | grep -v -E "(health-check|top|ps)" | head -5)
-HIGH_CPU_PROC=$(echo "$TOP_PROCS" | awk 'NR==2 {print $2}')
+HIGH_CPU_PROC=$(echo "$TOP_PROCS" | awk 'NR==2 {print $2}' | head -1)
+
+# Default to 0 if no high CPU process found
+HIGH_CPU_PROC=${HIGH_CPU_PROC:-0}
 
 # Alert if either sustained high total CPU OR a single process using >300% (actual abuse)
 if (( $(echo "$CPU_USAGE > $CPU_THRESHOLD" | bc -l) )) || (( $(echo "$HIGH_CPU_PROC > 300" | bc -l 2>/dev/null) )); then
