@@ -15,9 +15,9 @@ DISK_THRESHOLD=90
 # Process count threshold
 PROC_THRESHOLD=500
 
-# Check CPU usage - use 5-second average to avoid transient spikes
+# Check CPU usage - average across 3 samples to avoid false positives from transient spikes
 # Also exclude processes related to this health check
-CPU_USAGE=$(top -bn3 -d2 | grep "Cpu(s)" | tail -1 | awk '{for(i=1;i<=NF;i++) if($(i+1) == "id,") {printf "%.1f", 100-$i; break}}')
+CPU_USAGE=$(top -bn3 -d2 | grep "Cpu(s)" | awk '{for(i=1;i<=NF;i++) if($(i+1) == "id,") {print 100-$i; break}}' | awk '{sum+=$1; count++} END {if(count>0) printf "%.1f", sum/count; else print "0"}')
 
 # Get top CPU processes excluding health check related ones
 TOP_PROCS=$(ps -eo pid,pcpu,comm --sort=-pcpu | grep -v -E "(health-check|top|ps)" | head -5)
