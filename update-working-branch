@@ -16,7 +16,12 @@ if ! git diff-index --quiet HEAD --; then
   has_stash=true
 fi
 
-git fetch origin $base_branch && git pull
+if [ "$(git rev-parse --abbrev-ref HEAD)" = "$base_branch" ]; then
+  echo "Already on $base_branch — use 'git pull' instead."
+  exit 1
+fi
+
+git fetch origin $base_branch:$base_branch && git pull
 
 if [ "$has_stash" = true ]; then
   git stash pop
