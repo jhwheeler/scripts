@@ -1,0 +1,32 @@
+{
+  NAME "Duplex booklet job (PWG raster), sent straight to the printer"
+  OPERATION $op
+  GROUP operation-attributes-tag
+  ATTR charset attributes-charset utf-8
+  ATTR naturalLanguage attributes-natural-language en
+  ATTR uri printer-uri $uri
+  ATTR name requesting-user-name booklet
+  ATTR name job-name "$jobname"
+  ATTR mimeMediaType document-format image/pwg-raster
+  GROUP job-attributes-tag
+  ATTR keyword sides two-sided-short-edge
+  ATTR collection media-col {
+    MEMBER collection media-size {
+      MEMBER integer x-dimension 21000
+      MEMBER integer y-dimension 29700
+    }
+    MEMBER integer media-top-margin 500
+    MEMBER integer media-bottom-margin 500
+    MEMBER integer media-left-margin 340
+    MEMBER integer media-right-margin 340
+    MEMBER keyword media-source main
+    MEMBER keyword media-type stationery
+  }
+  ATTR keyword print-color-mode color
+  ATTR enum print-quality 4
+  FILE $filename
+  STATUS successful-ok
+  DISPLAY job-id
+  DISPLAY job-state
+  DISPLAY job-state-reasons
+}
